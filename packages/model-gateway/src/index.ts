@@ -33,9 +33,7 @@ export class ModelGateway {
 
   get(providerId: string): ModelProvider {
     const provider = this.providers.get(providerId);
-    if (!provider) {
-      throw new Error(`Model provider not registered: ${providerId}`);
-    }
+    if (!provider) throw new Error(`Model provider not registered: ${providerId}`);
     return provider;
   }
 
@@ -43,3 +41,5 @@ export class ModelGateway {
     return this.get(providerId).generate(request);
   }
 }
+
+export { AnthropicProvider } from "./anthropic.js";
