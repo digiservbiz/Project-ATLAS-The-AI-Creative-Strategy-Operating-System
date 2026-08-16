@@ -1,7 +1,7 @@
 # ATLAS Project State
 
 **Project:** ATLAS — AI Creative Strategy Operating System  
-**Version:** 0.4.0 — Vertical Slice Code Started  
+**Version:** 0.5.0 — Persistence Foundation  
 **Status:** Active development  
 **Development branch:** `dev`  
 **Stable branch:** `main`
@@ -12,45 +12,23 @@ Build a modular, research-first multi-agent AI system that operates like a senio
 ## Current phase
 ### Phase 2 — Engineering Foundation / First Vertical Slice
 
-Architecture and core interfaces are defined. Executable packages now exist for contracts, agent runtime, model gateway, workflow engine, domain types, persistence abstractions, and initial specialist agents.
+Architecture and executable foundations are in place. PostgreSQL persistence has now started.
 
 ## Completed
-
-### Repository & safety
-- GitHub repository established.
-- `dev` branch active; `main` remains stable.
-- Persistent project-state document established and maintained.
-- `.env.example` added; real secrets are not committed.
-- `.gitignore` added for secrets/build artifacts/local files.
-
-### Architecture/specification
-- Executive summary
-- Product vision
-- System architecture
-- Technical architecture
-- Agent contract specification
-- Database schema specification
-- Memory system specification
-- Knowledge/RAG specification
-- Workflow engine specification
-- API specification
-- Implementation roadmap
-- First vertical-slice specification
-- Claude implementation guide
-- Agent catalog
-
-### Executable foundation
-- pnpm workspace with `apps/*` and `packages/*`.
-- Shared TypeScript configuration.
+- GitHub repository, `dev` branch, stable `main`, and persistent project-state handoff.
+- Architecture/specification suite covering system, technical architecture, agents, database, memory, RAG, workflows, API, roadmap, vertical slice, Claude implementation, and agent catalog.
+- pnpm workspace and shared TypeScript configuration.
 - `@atlas/contracts` with Zod execution/artifact contracts.
-- `@atlas/agent-runtime` with registry and tool permission enforcement.
-- `@atlas/model-gateway` with provider-neutral provider interface.
-- `@atlas/workflow-engine` with sequential workflow execution.
-- `@atlas/domain` with core Organization/Project/Brand/Product/Campaign types.
-- `@atlas/persistence` with tenant-scoped repository interfaces and in-memory development implementations.
-- `@atlas/agents` with six initial vertical-slice specialists.
+- `@atlas/agent-runtime` with registry and tool-permission enforcement.
+- `@atlas/model-gateway` provider-neutral interface.
+- `@atlas/workflow-engine` initial sequential execution.
+- `@atlas/domain` core organization/project/brand/product/campaign types.
+- `@atlas/persistence` tenant-scoped repository interfaces and in-memory implementations.
+- `@atlas/agents` six initial vertical-slice specialists.
+- `@atlas/database` PostgreSQL client boundary.
+- Initial PostgreSQL migration with organizations, projects, brands, products, campaigns, workflow runs, agent runs, artifacts, and memories.
 
-### Initial specialists implemented
+## Initial specialists
 1. `product-research@1.0.0`
 2. `creative-strategy@1.0.0`
 3. `angle-generator@1.0.0`
@@ -58,52 +36,34 @@ Architecture and core interfaces are defined. Executable packages now exist for 
 5. `script-writer@1.0.0`
 6. `qa-validator@1.0.0`
 
-These are foundation implementations. They intentionally avoid pretending that placeholder outputs are real research until retrieval/tools are connected.
-
 ## First vertical slice
 ```text
-Product Brief
-    ↓
-Product Research Agent
-    ↓
-Creative Strategy Agent
-    ↓
-20-Angle Generator
-    ↓
-Hook Generator
-    ↓
-Script Writer
-    ↓
-QA Validator
-    ↓
-Campaign Strategy Package
+Product Brief → Product Research → Creative Strategy → 20 Angles → Hooks → Script → QA → Campaign Package
 ```
 
-The motivating creative methodology remains a strategic/evaluation layer: hook-to-offer-to-LP continuity, proof-first framing, one product/multiple angles, pain/problem, ego/status, gifting, competitor callouts, skepticism handling, and creative strategy over superficial editing. These are testable heuristics, not universal guarantees.
+The motivating methodology remains a strategic/evaluation layer: hook-to-offer-to-LP continuity, proof-first framing, one product/multiple angles, pain/problem, ego/status, gifting, competitor callouts, skepticism handling, and strategy over superficial editing.
 
 ## Not yet implemented
-- PostgreSQL migrations and real database adapter
-- Real Claude API provider adapter
-- Durable workflow persistence
-- Memory service
-- Knowledge/RAG service
-- REST API app
+- Production database repository implementations
+- Real Claude API adapter
+- Durable workflow execution
+- Memory/RAG services
+- REST API
 - Claude Skills packaging
 - MCP tools
-- Automated evaluation harness
+- Evaluation harness
 - Frontend/dashboard
-- External marketing integrations
+- External integrations
 - Production deployment
 
 ## Active work
-1. Add MVP PostgreSQL schema/migrations.
-2. Implement database repositories.
-3. Implement Claude provider adapter behind Model Gateway.
-4. Add durable workflow/artifact persistence.
-5. Add memory service and retrieval boundary.
-6. Connect specialist agents to model/tool interfaces.
-7. Add end-to-end vertical-slice integration test.
-8. Build evaluation harness.
+1. Implement PostgreSQL repositories over the new schema.
+2. Implement real Claude provider adapter behind Model Gateway.
+3. Add durable workflow/artifact persistence.
+4. Add memory service and retrieval boundary.
+5. Connect specialist agents to model/tool interfaces.
+6. Add end-to-end vertical-slice integration test.
+7. Build evaluation harness.
 
 ## Core decisions
 - PostgreSQL is the transactional source of truth; pgvector is planned for retrieval.
@@ -113,21 +73,21 @@ The motivating creative methodology remains a strategic/evaluation layer: hook-t
 - Agent outputs are durable versioned artifacts.
 - Human approval gates consequential external actions.
 - Provider-specific SDK code stays outside core runtime.
-- No speculative mass scaffolding; build only what the current slice requires.
-- `dev` is the development branch; `main` remains stable.
+- No speculative mass scaffolding.
+- `dev` is development; `main` remains stable.
 
 ## Known issues
-- The model gateway is currently an interface; no live provider is connected.
-- Workflow execution is currently in-memory and sequential.
-- Persistence is currently abstraction + in-memory implementations only.
-- Specialist agents currently use deterministic foundation outputs rather than live research/model calls.
-- Integration/evaluation tests are still required.
+- Database schema requires PostgreSQL with pgcrypto and pgvector extensions.
+- Model gateway has no live provider connected yet.
+- Workflow execution is still in-memory/sequential.
+- Specialist agents currently have deterministic foundation behavior.
+- Integration/evaluation tests remain to be added.
 - Not production-ready.
 
 ## Open/deferred decisions
 - Authentication provider
 - Deployment provider
-- Exact ORM/migration framework
+- Exact migration runner/ORM
 - Queue implementation and Redis timing
 - Embedding model/dimension
 - MCP tool set
@@ -135,16 +95,15 @@ The motivating creative methodology remains a strategic/evaluation layer: hook-t
 - Production marketing integrations
 
 ## Continuity protocol
-At every major milestone update this file with version/phase, completed work, active work, decisions, open questions, known issues, and next sequence. A new session should read this file before making architectural or implementation changes.
+At every major milestone update this file with version/phase, completed work, active work, decisions, open questions, known issues, and next sequence. A new session should read this file before architectural or implementation changes.
 
 ## Next sequence
-1. Database migration/schema package.
-2. PostgreSQL repositories.
-3. Claude provider adapter.
-4. Durable workflow/artifact store.
-5. Memory service.
-6. End-to-end vertical-slice runner.
-7. Evaluation tests.
-8. API foundation.
-9. Claude Skills and MCP integration.
-10. Dashboard foundation.
+1. PostgreSQL repository implementations.
+2. Claude provider adapter.
+3. Durable workflow/artifact store.
+4. Memory service.
+5. End-to-end vertical-slice runner.
+6. Evaluation tests.
+7. API foundation.
+8. Claude Skills and MCP integration.
+9. Dashboard foundation.
