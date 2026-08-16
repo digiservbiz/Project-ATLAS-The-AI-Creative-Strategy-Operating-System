@@ -1,7 +1,7 @@
 # ATLAS Project State
 
 **Project:** ATLAS — AI Creative Strategy Operating System  
-**Version:** 0.5.0 — Persistence Foundation  
+**Version:** 0.6.0 — Durable Workflow + Evaluation Foundation  
 **Status:** Active development  
 **Development branch:** `dev`  
 **Stable branch:** `main`
@@ -12,7 +12,7 @@ Build a modular, research-first multi-agent AI system that operates like a senio
 ## Current phase
 ### Phase 2 — Engineering Foundation / First Vertical Slice
 
-Architecture and executable foundations are in place. PostgreSQL persistence has now started.
+Executable foundations, database schema, durable workflow boundary, and the first evaluation layer are now in place.
 
 ## Completed
 - GitHub repository, `dev` branch, stable `main`, and persistent project-state handoff.
@@ -20,13 +20,15 @@ Architecture and executable foundations are in place. PostgreSQL persistence has
 - pnpm workspace and shared TypeScript configuration.
 - `@atlas/contracts` with Zod execution/artifact contracts.
 - `@atlas/agent-runtime` with registry and tool-permission enforcement.
-- `@atlas/model-gateway` provider-neutral interface.
+- `@atlas/model-gateway` provider-neutral interface plus provider boundary.
 - `@atlas/workflow-engine` initial sequential execution.
+- Durable workflow store boundary with run/step status persistence hooks.
 - `@atlas/domain` core organization/project/brand/product/campaign types.
 - `@atlas/persistence` tenant-scoped repository interfaces and in-memory implementations.
-- `@atlas/agents` six initial vertical-slice specialists.
 - `@atlas/database` PostgreSQL client boundary.
 - Initial PostgreSQL migration with organizations, projects, brands, products, campaigns, workflow runs, agent runs, artifacts, and memories.
+- `@atlas/agents` six initial vertical-slice specialists.
+- `@atlas/evaluation` initial evaluation harness and creative-strategy baseline cases.
 
 ## Initial specialists
 1. `product-research@1.0.0`
@@ -44,26 +46,26 @@ Product Brief → Product Research → Creative Strategy → 20 Angles → Hooks
 The motivating methodology remains a strategic/evaluation layer: hook-to-offer-to-LP continuity, proof-first framing, one product/multiple angles, pain/problem, ego/status, gifting, competitor callouts, skepticism handling, and strategy over superficial editing.
 
 ## Not yet implemented
-- Production database repository implementations
-- Real Claude API adapter
-- Durable workflow execution
-- Memory/RAG services
+- Production PostgreSQL repository implementations
+- Fully wired live Claude API execution
+- Persistent memory retrieval service
+- Full durable artifact persistence implementation
+- End-to-end runner connecting all six specialists with artifact passing
 - REST API
 - Claude Skills packaging
 - MCP tools
-- Evaluation harness
 - Frontend/dashboard
 - External integrations
 - Production deployment
 
 ## Active work
-1. Implement PostgreSQL repositories over the new schema.
-2. Implement real Claude provider adapter behind Model Gateway.
-3. Add durable workflow/artifact persistence.
-4. Add memory service and retrieval boundary.
-5. Connect specialist agents to model/tool interfaces.
-6. Add end-to-end vertical-slice integration test.
-7. Build evaluation harness.
+1. Implement PostgreSQL repositories over the schema.
+2. Complete the live Claude provider adapter and environment validation.
+3. Implement PostgreSQL-backed WorkflowStore and artifact persistence.
+4. Implement memory retrieval/write service.
+5. Build the first end-to-end vertical-slice runner.
+6. Expand evaluation cases and integration tests.
+7. Add API foundation.
 
 ## Core decisions
 - PostgreSQL is the transactional source of truth; pgvector is planned for retrieval.
@@ -78,10 +80,10 @@ The motivating methodology remains a strategic/evaluation layer: hook-to-offer-t
 
 ## Known issues
 - Database schema requires PostgreSQL with pgcrypto and pgvector extensions.
-- Model gateway has no live provider connected yet.
-- Workflow execution is still in-memory/sequential.
-- Specialist agents currently have deterministic foundation behavior.
-- Integration/evaluation tests remain to be added.
+- Live provider requires a real `ANTHROPIC_API_KEY` at runtime and must never be committed.
+- Durable workflow currently has an interface but needs a concrete PostgreSQL store.
+- Specialist agents still contain deterministic foundation behavior and need model/tool integration.
+- Evaluation harness is structural/baseline-level, not a substitute for human or production performance evaluation.
 - Not production-ready.
 
 ## Open/deferred decisions
@@ -98,12 +100,11 @@ The motivating methodology remains a strategic/evaluation layer: hook-to-offer-t
 At every major milestone update this file with version/phase, completed work, active work, decisions, open questions, known issues, and next sequence. A new session should read this file before architectural or implementation changes.
 
 ## Next sequence
-1. PostgreSQL repository implementations.
-2. Claude provider adapter.
-3. Durable workflow/artifact store.
-4. Memory service.
-5. End-to-end vertical-slice runner.
-6. Evaluation tests.
-7. API foundation.
-8. Claude Skills and MCP integration.
-9. Dashboard foundation.
+1. PostgreSQL repositories + durable WorkflowStore.
+2. Complete Claude provider integration.
+3. Memory service.
+4. End-to-end vertical-slice runner.
+5. Integration/evaluation tests.
+6. API foundation.
+7. Claude Skills and MCP integration.
+8. Dashboard foundation.
