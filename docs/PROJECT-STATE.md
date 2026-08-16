@@ -1,7 +1,7 @@
 # ATLAS Project State
 
 **Project:** ATLAS — AI Creative Strategy Operating System  
-**Version:** 0.6.0 — Durable Workflow + Evaluation Foundation  
+**Version:** 0.7.0 — Master PDR v1.0 Started  
 **Status:** Active development  
 **Development branch:** `dev`  
 **Stable branch:** `main`
@@ -10,25 +10,42 @@
 Build a modular, research-first multi-agent AI system that operates like a senior creative strategy team for e-commerce brands and agencies.
 
 ## Current phase
-### Phase 2 — Engineering Foundation / First Vertical Slice
+### Phase 2 — Engineering Foundation + Master PDR
 
-Executable foundations, database schema, durable workflow boundary, and the first evaluation layer are now in place.
+The Master PDR is now being built directly in `docs/PDR/` as a structured living specification. The PDR is the source of truth for implementation; code is not considered complete merely because a requirement is documented.
 
-## Completed
-- GitHub repository, `dev` branch, stable `main`, and persistent project-state handoff.
-- Architecture/specification suite covering system, technical architecture, agents, database, memory, RAG, workflows, API, roadmap, vertical slice, Claude implementation, and agent catalog.
-- pnpm workspace and shared TypeScript configuration.
-- `@atlas/contracts` with Zod execution/artifact contracts.
-- `@atlas/agent-runtime` with registry and tool-permission enforcement.
-- `@atlas/model-gateway` provider-neutral interface plus provider boundary.
-- `@atlas/workflow-engine` initial sequential execution.
-- Durable workflow store boundary with run/step status persistence hooks.
-- `@atlas/domain` core organization/project/brand/product/campaign types.
-- `@atlas/persistence` tenant-scoped repository interfaces and in-memory implementations.
-- `@atlas/database` PostgreSQL client boundary.
-- Initial PostgreSQL migration with organizations, projects, brands, products, campaigns, workflow runs, agent runs, artifacts, and memories.
-- `@atlas/agents` six initial vertical-slice specialists.
-- `@atlas/evaluation` initial evaluation harness and creative-strategy baseline cases.
+## PDR v1.0 added
+- `docs/PDR/00-MASTER-INDEX.md`
+- `docs/PDR/01-EXECUTIVE-SUMMARY.md`
+- `docs/PDR/02-PRODUCT-REQUIREMENTS.md`
+- `docs/PDR/07-CREATIVE-STRATEGY-ENGINE.md`
+
+The index defines the planned complete PDR map covering product, architecture, multi-agent system, skills, research, RAG, memory, workflows, models, tools/MCP, database, API, frontend, evaluation, security, observability, integrations, deployment and roadmap.
+
+## Strategic methodology encoded
+- Hook-to-offer-to-LP continuity
+- Proof-first framing
+- One product / many materially different hypotheses
+- Pain/problem, benefit, proof, ego/status, gifting, competitor, objection, curiosity, demonstration and other angle families
+- Skepticism/scam-fatigue handling through credible evidence
+- Direct-response orientation
+- Strategist vs editor distinction
+- Evidence discipline and anti-fabrication requirements
+- Hypothesis-driven testing
+
+## Existing engineering foundation
+- pnpm workspace and TypeScript foundation.
+- `@atlas/contracts`
+- `@atlas/agent-runtime`
+- `@atlas/model-gateway`
+- `@atlas/workflow-engine`
+- `@atlas/domain`
+- `@atlas/persistence`
+- `@atlas/database`
+- `@atlas/agents`
+- `@atlas/evaluation`
+- PostgreSQL initial migration.
+- Durable workflow store boundary.
 
 ## Initial specialists
 1. `product-research@1.0.0`
@@ -38,73 +55,44 @@ Executable foundations, database schema, durable workflow boundary, and the firs
 5. `script-writer@1.0.0`
 6. `qa-validator@1.0.0`
 
-## First vertical slice
-```text
-Product Brief → Product Research → Creative Strategy → 20 Angles → Hooks → Script → QA → Campaign Package
-```
-
-The motivating methodology remains a strategic/evaluation layer: hook-to-offer-to-LP continuity, proof-first framing, one product/multiple angles, pain/problem, ego/status, gifting, competitor callouts, skepticism handling, and strategy over superficial editing.
-
 ## Not yet implemented
-- Production PostgreSQL repository implementations
-- Fully wired live Claude API execution
+- Remaining complete PDR sections
+- Production PostgreSQL repositories
+- Fully wired live Claude execution
 - Persistent memory retrieval service
 - Full durable artifact persistence implementation
-- End-to-end runner connecting all six specialists with artifact passing
-- REST API
+- End-to-end runner with artifact passing
 - Claude Skills packaging
 - MCP tools
+- REST API
 - Frontend/dashboard
-- External integrations
-- Production deployment
+- Production integrations/deployment
 
 ## Active work
-1. Implement PostgreSQL repositories over the schema.
-2. Complete the live Claude provider adapter and environment validation.
-3. Implement PostgreSQL-backed WorkflowStore and artifact persistence.
-4. Implement memory retrieval/write service.
-5. Build the first end-to-end vertical-slice runner.
-6. Expand evaluation cases and integration tests.
-7. Add API foundation.
-
-## Core decisions
-- PostgreSQL is the transactional source of truth; pgvector is planned for retrieval.
-- Claude is the initial primary model provider behind a provider-neutral gateway.
-- Node.js + TypeScript backend; Next.js frontend later.
-- REST API initially.
-- Agent outputs are durable versioned artifacts.
-- Human approval gates consequential external actions.
-- Provider-specific SDK code stays outside core runtime.
-- No speculative mass scaffolding.
-- `dev` is development; `main` remains stable.
-
-## Known issues
-- Database schema requires PostgreSQL with pgcrypto and pgvector extensions.
-- Live provider requires a real `ANTHROPIC_API_KEY` at runtime and must never be committed.
-- Durable workflow currently has an interface but needs a concrete PostgreSQL store.
-- Specialist agents still contain deterministic foundation behavior and need model/tool integration.
-- Evaluation harness is structural/baseline-level, not a substitute for human or production performance evaluation.
-- Not production-ready.
-
-## Open/deferred decisions
-- Authentication provider
-- Deployment provider
-- Exact migration runner/ORM
-- Queue implementation and Redis timing
-- Embedding model/dimension
-- MCP tool set
-- Billing/usage limits
-- Production marketing integrations
+1. Complete Master PDR v1.0 sections.
+2. Convert PDR requirements into agent/skill contracts.
+3. Implement PostgreSQL repositories and durable WorkflowStore.
+4. Complete live Claude provider integration.
+5. Implement memory/RAG.
+6. Build end-to-end vertical slice.
+7. Expand evaluation suite.
 
 ## Continuity protocol
 At every major milestone update this file with version/phase, completed work, active work, decisions, open questions, known issues, and next sequence. A new session should read this file before architectural or implementation changes.
 
-## Next sequence
-1. PostgreSQL repositories + durable WorkflowStore.
-2. Complete Claude provider integration.
-3. Memory service.
-4. End-to-end vertical-slice runner.
-5. Integration/evaluation tests.
-6. API foundation.
-7. Claude Skills and MCP integration.
-8. Dashboard foundation.
+## Next PDR sections
+1. System architecture
+2. Multi-agent architecture
+3. Agent catalog
+4. Skills system
+5. Research intelligence
+6. Knowledge/RAG
+7. Memory
+8. Workflow engine
+9. Model gateway
+10. Tools/MCP
+11. Database
+12. API/frontend
+13. Evaluation/security/observability
+14. Integrations/deployment
+15. Implementation roadmap
