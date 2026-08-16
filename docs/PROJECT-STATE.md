@@ -1,7 +1,7 @@
 # ATLAS Project State
 
 **Project:** ATLAS — AI Creative Strategy Operating System  
-**Version:** 0.2.0 — Architecture Complete / Engineering Foundation Starting  
+**Version:** 0.3.0 — Engineering Foundation Started  
 **Status:** Active development  
 **Development branch:** `dev`  
 **Stable branch:** `main`
@@ -10,44 +10,11 @@
 
 Build a modular, research-first multi-agent AI system that operates like a senior creative strategy team for e-commerce brands and agencies.
 
-## Core capabilities
-
-- Market research
-- Customer research
-- Product research
-- Competitor intelligence
-- Positioning
-- Offer strategy
-- Creative angle generation
-- Hook generation
-- Ad script development
-- Creative direction
-- Landing-page/CRO strategy
-- Creative testing
-- Performance analysis
-- Persistent brand/campaign memory
-- Reusable marketing knowledge
-
-## Architectural principles
-
-1. Research before creation.
-2. Specialized agents over one monolithic prompt.
-3. Structured contracts between agents.
-4. Human approval for consequential actions.
-5. Evidence and source traceability where research is used.
-6. Shared memory must be explicit, versioned, and auditable.
-7. Knowledge and campaign data are separate concerns.
-8. Provider-agnostic interfaces where practical.
-9. Build incrementally; do not create speculative complexity.
-10. Every major component needs tests and acceptance criteria.
-11. The orchestrator coordinates; specialist agents own expertise.
-12. The runtime owns execution; persistence owns durable state.
-
 ## Current phase
 
 ### Phase 2 — Engineering Foundation
 
-Phase 1 architecture is defined. The repository is now moving from specifications into executable implementation.
+Architecture is defined and the executable monorepo foundation has started.
 
 ## Completed
 
@@ -55,10 +22,10 @@ Phase 1 architecture is defined. The repository is now moving from specification
 
 - GitHub repository established.
 - `dev` branch created from `main`.
-- `main` reserved for stable/releasable work.
+- `main` reserved for stable work.
 - Persistent project-state document established.
 
-### Architecture
+### Architecture/specification
 
 - Executive summary
 - Product vision
@@ -75,7 +42,23 @@ Phase 1 architecture is defined. The repository is now moving from specification
 - Claude implementation guide
 - Agent catalog
 
-### Core architectural decisions
+### Executable foundation
+
+- Root `package.json` created.
+- pnpm workspace created.
+- Shared TypeScript configuration created.
+- `.env.example` created.
+- `.gitignore` created with secret/local-file protection.
+- `@atlas/contracts` package created.
+- Initial Zod execution/artifact contracts created.
+- `@atlas/agent-runtime` package created.
+- Agent registry and tool-permission enforcement implemented.
+- `@atlas/model-gateway` package created.
+- Provider-neutral model gateway interface implemented.
+- `@atlas/workflow-engine` package created.
+- Initial sequential workflow execution implemented.
+
+## Core architectural decisions
 
 - PostgreSQL is the initial transactional source of truth.
 - pgvector is the initial vector-search approach.
@@ -87,6 +70,8 @@ Phase 1 architecture is defined. The repository is now moving from specification
 - Agent outputs are versioned artifacts rather than disposable chat responses.
 - Human approval gates consequential external actions.
 - The first vertical slice is intentionally small and end-to-end.
+- The monorepo uses pnpm workspaces with `apps/*` and `packages/*`.
+- Shared contracts are centralized so runtime, workflows, and future API layers use the same validation boundary.
 
 ## First vertical slice
 
@@ -108,31 +93,20 @@ QA Validator
 Campaign Strategy Package
 ```
 
-The creative methodology that motivated ATLAS is part of the strategic knowledge/evaluation layer, including:
-
-- Hook-to-offer-to-landing-page message continuity
-- Proof-first visual framing
-- Product → multiple strategic angles
-- Pain/problem angles
-- Ego/status angles
-- Gifting angles
-- Competitor callouts
-- Skepticism/scam-fatigue handling
-- Creative strategy over purely editorial/video-editing execution
-
-These are treated as testable strategic heuristics, not universal guarantees.
+The creative methodology that motivated ATLAS is part of the strategic knowledge/evaluation layer, including hook-to-offer-to-LP continuity, proof-first framing, one product/multiple angles, pain/problem, ego/status, gifting, competitor callouts, skepticism handling, and strategy over superficial editing. These are testable heuristics, not universal guarantees.
 
 ## Not yet implemented
 
-- Executable backend
 - Database migrations
-- Agent runtime
-- Model Gateway
-- Workflow engine implementation
+- Persistent repository implementations
+- Claude provider adapter using the real API
 - Memory service implementation
 - Knowledge/RAG implementation
+- Full durable workflow persistence
+- First vertical-slice specialist agents
 - Claude Skills
 - MCP tools
+- REST API application
 - Frontend/dashboard
 - Automated evaluation harness
 - External integrations
@@ -140,28 +114,24 @@ These are treated as testable strategic heuristics, not universal guarantees.
 
 ## Active work
 
-Move from architecture documents to the executable engineering foundation:
-
-1. Repository/package scaffolding.
-2. TypeScript configuration.
-3. Environment configuration and secrets boundary.
-4. Database migrations for MVP entities.
-5. Core domain types and schemas.
-6. Model Gateway abstraction.
-7. Agent runtime.
-8. Workflow state engine.
-9. Memory service.
-10. First vertical-slice agents.
+1. Add database migration layer and MVP schema.
+2. Add shared domain entities and validation schemas.
+3. Implement real persistence interfaces.
+4. Implement Claude provider adapter behind Model Gateway.
+5. Upgrade workflow engine toward durable state and artifact persistence.
+6. Implement memory service.
+7. Implement first vertical-slice agents.
+8. Add tests and evaluation fixtures.
 
 ## Decisions made
 
 - Do not generate hundreds of speculative empty files.
 - Build only components required by the current architecture and workflow.
-- Keep `dev` as the active development branch.
-- Keep `main` stable.
-- Use durable GitHub documentation as project continuity memory in addition to chat memory.
-- Preserve agent execution history and artifact versions for debugging and learning.
+- Keep `dev` as active development branch and `main` stable.
+- Use GitHub documentation as persistent project continuity memory in addition to chat memory.
+- Preserve agent execution history and artifact versions.
 - Do not allow agents to perform external side effects without explicit authorization/approval in the initial version.
+- Keep provider-specific SDK code outside the core agent runtime.
 
 ## Open questions / deferred decisions
 
@@ -172,39 +142,29 @@ Move from architecture documents to the executable engineering foundation:
 - Exact embedding model/dimension.
 - Exact MCP tool set.
 - Billing model and usage limits.
-- Which external marketing integrations are included in the first production release.
-
-These decisions should be made when their implementation phase is reached, not prematurely.
+- Production external marketing integrations.
 
 ## Known issues
 
-- The repository currently contains architecture/specification work ahead of executable implementation.
-- Some documents describe conceptual interfaces that still need concrete TypeScript types and tests.
-- The current state should not yet be considered production-ready.
+- The executable packages are foundation-level and need integration tests.
+- Workflow execution is currently in-memory/sequential and is not yet durable.
+- The model gateway is an interface only; no production provider adapter is connected yet.
+- Database persistence has not yet been implemented.
+- The repository is not production-ready.
 
 ## Continuity protocol
 
-At the end of every major work session, update this file with:
-
-- Current version and phase
-- Completed work
-- Active work
-- Decisions made
-- Open questions
-- Known issues
-- Next recommended implementation sequence
-
-This file is the persistent project handoff for future development sessions. A new chat/session should read this file before making architectural or implementation changes.
+At the end of every major work session, update this file with current version/phase, completed work, active work, decisions, open questions, known issues, and the next implementation sequence. A new chat/session should read this file before making architectural or implementation changes.
 
 ## Next recommended sequence
 
-1. Create executable monorepo/package structure.
-2. Add TypeScript and lint/test configuration.
-3. Add environment configuration with `.env.example` and secret-handling rules.
-4. Implement database migrations for the MVP tables.
-5. Implement shared domain types and Zod/JSON-schema validation.
-6. Implement the Model Gateway interface and Claude adapter boundary.
-7. Implement the Agent Runtime.
-8. Implement the Workflow Engine.
-9. Implement the first six vertical-slice agents.
-10. Run the first end-to-end local workflow before expanding the agent catalog.
+1. Database migration/schema package.
+2. Domain model package.
+3. Repository interfaces + PostgreSQL implementation.
+4. Claude provider adapter.
+5. Durable workflow persistence.
+6. Memory repository/service.
+7. First vertical-slice agents.
+8. End-to-end integration test.
+9. Evaluation harness.
+10. API and dashboard foundations.
