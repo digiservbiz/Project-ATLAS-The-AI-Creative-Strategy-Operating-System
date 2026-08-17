@@ -1,55 +1,75 @@
 # ATLAS Project State
 
 **Project:** ATLAS — AI Creative Strategy Operating System  
-**Version:** 0.8.0 — Semantic Intelligence Layer Incorporated  
+**Version:** 0.9.0 — Creative Intelligence + Production + Ad Execution Architecture  
 **Status:** Active development  
 **Development branch:** `dev`  
 **Stable branch:** `main`
 
 ## Mission
-Build a modular, research-first multi-agent AI system that operates like a senior creative strategy team for e-commerce brands and agencies.
+Build a modular, research-first multi-agent AI system that operates like a senior creative strategy team and creative growth operating system for e-commerce brands and agencies.
 
 ## Current phase
-### Phase 2 — Engineering Foundation + Master PDR
+### Phase 2 — Master PDR + Engineering Foundation
 
-The Master PDR is being built directly in `docs/PDR/` as a structured living specification. The PDR is the source of truth for implementation.
+The Master PDR is the living source of truth for implementation.
 
-## PDR v1.0 added
+## PDR sections added
 - `docs/PDR/00-MASTER-INDEX.md`
 - `docs/PDR/01-EXECUTIVE-SUMMARY.md`
 - `docs/PDR/02-PRODUCT-REQUIREMENTS.md`
 - `docs/PDR/07-CREATIVE-STRATEGY-ENGINE.md`
 - `docs/PDR/08-SEMANTIC-INTELLIGENCE-AND-EMBEDDING-LAYER.md`
+- `docs/PDR/13-COMPETITIVE-CREATIVE-INTELLIGENCE-ENGINE.md`
+- `docs/PDR/14-AI-CREATIVE-PRODUCTION-AND-MEDIA-GENERATION.md`
+- `docs/PDR/15-AD-PLATFORM-INTEGRATION-AND-EXECUTION.md`
 
-## Official architecture addition: SIEL
-The **Semantic Intelligence & Embedding Layer (SIEL)** is now an official ATLAS subsystem.
+## Official architecture
+ATLAS now explicitly includes four connected intelligence/execution layers:
 
-SIEL is not merely vector storage. It provides the semantic capabilities required for:
-- embedding generation
-- semantic retrieval
-- similarity matching
-- creative deduplication
-- clustering
-- pattern discovery
-- semantic memory retrieval
-- hook/landing-page semantic continuity analysis
-- angle-gap detection
-- historical creative retrieval
+1. **SIEL — Semantic Intelligence & Embedding Layer**
+2. **CCIE — Competitive Creative Intelligence Engine**
+3. **AI Creative Production & Media Generation Layer**
+4. **Ad Platform Integration & Execution Layer**
 
-SIEL is provider-neutral, versioned, tenant-scoped, provenance-aware, and designed for hybrid retrieval over PostgreSQL + pgvector.
+### End-to-end target loop
+```text
+Public/authorized market intelligence
+          ↓
+Competitive Creative Intelligence
+          ↓
+Research + customer/product intelligence
+          ↓
+Semantic Intelligence + Memory/RAG
+          ↓
+Creative Strategy
+          ↓
+Angles / Hooks / Scripts / Offers / LP messaging
+          ↓
+AI Creative Production
+          ↓
+Creative QA
+          ↓
+Human approval
+          ↓
+Meta / TikTok / Google execution
+          ↓
+First-party performance data
+          ↓
+Analytics + semantic learning
+          ↓
+New hypotheses and creative tests
+```
 
-The exact embedding model and vector dimension remain configurable implementation decisions. The existing database `memories.embedding` field is infrastructure groundwork, not proof that SIEL v1 is fully implemented.
+## Evidence discipline
+Public ad libraries and creative-intelligence sources are market-observation inputs. They do not automatically provide verified conversion performance.
 
-## Strategic methodology encoded
-- Hook-to-offer-to-LP continuity
-- Proof-first framing
-- One product / many materially different hypotheses
-- Pain/problem, benefit, proof, ego/status, gifting, competitor, objection, curiosity, demonstration and other angle families
-- Skepticism/scam-fatigue handling through credible evidence
-- Direct-response orientation
-- Strategist vs editor distinction
-- Evidence discipline and anti-fabrication requirements
-- Hypothesis-driven testing
+ATLAS must distinguish:
+- verified first-party performance;
+- platform-provided public performance signals;
+- market observation.
+
+Only authorized/publicly accessible data may be used, subject to platform terms, permissions, licenses, privacy and applicable law. ATLAS must not bypass platform restrictions.
 
 ## Existing engineering foundation
 - pnpm workspace and TypeScript foundation.
@@ -78,8 +98,11 @@ The exact embedding model and vector dimension remain configurable implementatio
 - Production PostgreSQL repositories
 - Fully wired live Claude execution
 - SIEL v1 implementation and embedding provider
+- CCIE source connectors
+- AI media-generation gateway/providers
 - Persistent memory retrieval service
 - Full durable artifact persistence implementation
+- Ad-platform connectors/execution
 - End-to-end runner with artifact passing
 - Claude Skills packaging
 - MCP tools
@@ -88,26 +111,40 @@ The exact embedding model and vector dimension remain configurable implementatio
 - Production integrations/deployment
 
 ## Active work
-1. Complete Master PDR v1.0 sections.
+1. Complete remaining Master PDR sections.
 2. Convert PDR requirements into agent/skill contracts.
-3. Implement PostgreSQL repositories and durable WorkflowStore.
-4. Implement SIEL provider interface, embedding pipeline, and pgvector retrieval.
-5. Complete live Claude provider integration.
-6. Implement memory/RAG.
-7. Build end-to-end vertical slice.
-8. Expand evaluation suite.
+3. Implement SIEL interfaces, embeddings and pgvector retrieval.
+4. Implement CCIE connector contracts and normalized creative store.
+5. Implement media-generation gateway contracts.
+6. Implement PostgreSQL repositories and durable WorkflowStore.
+7. Complete live Claude provider integration.
+8. Implement memory/RAG.
+9. Build end-to-end vertical slice.
+10. Add authorized ad-platform intelligence/execution adapters.
+11. Expand evaluation suite.
+
+## Key decisions
+- PostgreSQL is transactional source of truth; pgvector is planned for semantic retrieval.
+- Claude is the initial primary reasoning provider behind a provider-neutral model gateway.
+- Media generation is provider-neutral; no single image/video vendor is architecturally required.
+- External platform connectors are provider-specific and permission-scoped.
+- Paid execution has an explicit human-approval boundary by default.
+- Generated assets retain lineage, provider/model metadata, QA results, and rights metadata.
+- Public market intelligence must not be represented as verified campaign performance.
 
 ## Continuity protocol
 At every major milestone update this file with version/phase, completed work, active work, decisions, open questions, known issues, and next sequence. A new session should read this file before architectural or implementation changes.
 
 ## Next sequence
-1. Complete remaining PDR architecture sections.
-2. Define SIEL interfaces and evaluation dataset.
-3. Implement embedding provider abstraction.
-4. Implement pgvector semantic repository and hybrid retrieval.
-5. Implement PostgreSQL repositories + durable WorkflowStore.
-6. Complete live Claude integration.
-7. Implement memory/RAG.
-8. Wire the six-agent end-to-end workflow.
-9. Run evaluation suite.
-10. Add API, Skills/MCP, and dashboard foundations.
+1. Finish PDR architecture sections for memory/RAG, integrations, API, security, observability and evaluation.
+2. Define SIEL + CCIE + media gateway interfaces.
+3. Implement SIEL/pgvector retrieval.
+4. Implement PostgreSQL repositories + durable WorkflowStore.
+5. Complete live Claude integration.
+6. Implement memory/RAG.
+7. Wire the six-agent vertical slice.
+8. Add CCIE connectors.
+9. Add media generation adapters.
+10. Add authorized Meta/TikTok/Google performance connectors and approval-controlled execution.
+11. Run end-to-end evaluation.
+12. Add API, Skills/MCP and dashboard foundations.
