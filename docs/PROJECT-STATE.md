@@ -1,7 +1,7 @@
 # ATLAS Project State
 
 **Project:** ATLAS — AI Creative Strategy Operating System  
-**Version:** 0.9.0 — Creative Intelligence + Production + Ad Execution Architecture  
+**Version:** 0.9.1 — Connector Contracts + Creative Intelligence Architecture  
 **Status:** Active development  
 **Development branch:** `dev`  
 **Stable branch:** `main`
@@ -113,15 +113,16 @@ Only authorized/publicly accessible data may be used, subject to platform terms,
 ## Active work
 1. Complete remaining Master PDR sections.
 2. Convert PDR requirements into agent/skill contracts.
-3. Implement SIEL interfaces, embeddings and pgvector retrieval.
-4. Implement CCIE connector contracts and normalized creative store.
-5. Implement media-generation gateway contracts.
-6. Implement PostgreSQL repositories and durable WorkflowStore.
-7. Complete live Claude provider integration.
-8. Implement memory/RAG.
-9. Build end-to-end vertical slice.
-10. Add authorized ad-platform intelligence/execution adapters.
-11. Expand evaluation suite.
+3. Define shared provider/connector interfaces.
+4. Implement SIEL interfaces, embeddings and pgvector retrieval.
+5. Implement CCIE normalized creative store and first permitted connector.
+6. Implement media-generation gateway contracts.
+7. Implement PostgreSQL repositories and durable WorkflowStore.
+8. Complete live Claude provider integration.
+9. Implement memory/RAG.
+10. Build end-to-end vertical slice.
+11. Add authorized ad-platform intelligence/execution adapters.
+12. Expand evaluation suite.
 
 ## Key decisions
 - PostgreSQL is transactional source of truth; pgvector is planned for semantic retrieval.
