@@ -1,17 +1,8 @@
 import { z } from "zod";
 
 export const semanticObjectTypeSchema = z.enum([
-  "creative",
-  "hook",
-  "angle",
-  "script",
-  "offer",
-  "landing_page",
-  "product",
-  "customer_problem",
-  "research_finding",
-  "memory",
-  "campaign",
+  "creative", "hook", "angle", "script", "offer", "landing_page",
+  "product", "customer_problem", "research_finding", "memory", "campaign",
 ]);
 
 export const semanticObjectSchema = z.object({
@@ -24,6 +15,7 @@ export const semanticObjectSchema = z.object({
   language: z.string().min(1).optional(),
   market: z.string().min(1).optional(),
   metadata: z.record(z.string(), z.unknown()).default({}),
+  createdAt: z.string().datetime().optional(),
 });
 
 export const embeddingRecordSchema = z.object({
@@ -75,5 +67,9 @@ export interface EmbeddingProvider {
 export interface SemanticRepository {
   upsertObject(object: SemanticObject): Promise<void>;
   saveEmbedding(record: EmbeddingRecord): Promise<void>;
-  search(request: SemanticSearchRequest): Promise<SemanticSearchResponse>;
+  search(
+    request: SemanticSearchRequest,
+    queryVector: number[],
+    embeddingModel: string,
+  ): Promise<SemanticSearchResponse>;
 }
