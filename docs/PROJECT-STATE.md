@@ -1,7 +1,7 @@
 # ATLAS Project State
 
 **Project:** ATLAS — AI Creative Strategy Operating System  
-**Version:** 0.9.1 — Connector Contracts + Creative Intelligence Architecture  
+**Version:** 0.9.2 — SIEL Contracts + Creative Intelligence Architecture  
 **Status:** Active development  
 **Development branch:** `dev`  
 **Stable branch:** `main`
@@ -61,6 +61,18 @@ Analytics + semantic learning
 New hypotheses and creative tests
 ```
 
+## Engineering progress
+### Shared SIEL contracts — implemented
+Added `packages/contracts/src/intelligence.ts` containing:
+- semantic object types
+- tenant/project-scoped semantic object schema
+- versioned embedding record schema
+- semantic search request/response schemas
+- provider-neutral `EmbeddingProvider` interface
+- provider-neutral `SemanticRepository` interface
+
+These are contracts only; they do not yet implement embedding generation or pgvector retrieval.
+
 ## Evidence discipline
 Public ad libraries and creative-intelligence sources are market-observation inputs. They do not automatically provide verified conversion performance.
 
@@ -113,16 +125,15 @@ Only authorized/publicly accessible data may be used, subject to platform terms,
 ## Active work
 1. Complete remaining Master PDR sections.
 2. Convert PDR requirements into agent/skill contracts.
-3. Define shared provider/connector interfaces.
-4. Implement SIEL interfaces, embeddings and pgvector retrieval.
-5. Implement CCIE normalized creative store and first permitted connector.
-6. Implement media-generation gateway contracts.
-7. Implement PostgreSQL repositories and durable WorkflowStore.
-8. Complete live Claude provider integration.
-9. Implement memory/RAG.
-10. Build end-to-end vertical slice.
-11. Add authorized ad-platform intelligence/execution adapters.
-12. Expand evaluation suite.
+3. Implement SIEL embedding provider and pgvector repository.
+4. Implement CCIE normalized creative store and first permitted connector.
+5. Implement media-generation gateway contracts.
+6. Implement PostgreSQL repositories and durable WorkflowStore.
+7. Complete live Claude provider integration.
+8. Implement memory/RAG.
+9. Build end-to-end vertical slice.
+10. Add authorized ad-platform intelligence/execution adapters.
+11. Expand evaluation suite.
 
 ## Key decisions
 - PostgreSQL is transactional source of truth; pgvector is planned for semantic retrieval.
@@ -137,15 +148,15 @@ Only authorized/publicly accessible data may be used, subject to platform terms,
 At every major milestone update this file with version/phase, completed work, active work, decisions, open questions, known issues, and next sequence. A new session should read this file before architectural or implementation changes.
 
 ## Next sequence
-1. Finish PDR architecture sections for memory/RAG, integrations, API, security, observability and evaluation.
-2. Define SIEL + CCIE + media gateway interfaces.
-3. Implement SIEL/pgvector retrieval.
-4. Implement PostgreSQL repositories + durable WorkflowStore.
-5. Complete live Claude integration.
-6. Implement memory/RAG.
-7. Wire the six-agent vertical slice.
-8. Add CCIE connectors.
-9. Add media generation adapters.
+1. Implement SIEL embedding provider abstraction and pgvector semantic repository.
+2. Add retrieval evaluation fixtures and tests.
+3. Finish PDR architecture sections for memory/RAG, integrations, API, security, observability and evaluation.
+4. Implement CCIE connector contracts and normalized creative ingestion.
+5. Implement media generation adapters.
+6. Implement PostgreSQL repositories + durable WorkflowStore.
+7. Complete live Claude integration.
+8. Implement memory/RAG.
+9. Wire the six-agent vertical slice.
 10. Add authorized Meta/TikTok/Google performance connectors and approval-controlled execution.
 11. Run end-to-end evaluation.
 12. Add API, Skills/MCP and dashboard foundations.
