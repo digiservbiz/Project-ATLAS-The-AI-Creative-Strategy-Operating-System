@@ -1,5 +1,5 @@
 import type {
-  SemanticEmbedding,
+  EmbeddingRecord,
   SemanticObject,
   SemanticRepository,
   SemanticSearchRequest,
@@ -8,30 +8,41 @@ import type {
 
 export class InMemorySemanticRepository implements SemanticRepository {
   private readonly objects = new Map<string, SemanticObject>();
-  private readonly embeddings = new Map<string, SemanticEmbedding>();
+  private readonly embeddings = new Map<string, EmbeddingRecord>();
 
   async upsertObject(object: SemanticObject): Promise<void> {
     this.objects.set(object.id, object);
   }
 
-  async saveEmbedding(embedding: SemanticEmbedding): Promise<void> {
+  async saveEmbedding(embedding: EmbeddingRecord): Promise<void> {
     this.embeddings.set(embedding.objectId, embedding);
   }
 
-  async search(request: SemanticSearchRequest): Promise<SemanticSearchResponse> {
+  async search(
+    request: SemanticSearchRequest,
+    queryVector: number[],
+    embeddingModel: string,
+  ): Promise<SemanticSearchResponse> {
     const candidates = [...this.embeddings.values()]
       .map((embedding) => {
         const object = this.objects.get(embedding.objectId);
-        if (!object || object.organizationId !== request.organizationId) return null;
-        if (request.projectId && object.projectId !== request.projectId) return null;
-        if (request.objectType && object.objectType !== request.objectType) return null;
-        return { object, similarity: cosine(request.queryVector, embedding.vector) };
+        if (!object || object.organizationId !== request.organizationId || object.projectId !== request.projectId) return null;
+        if (request.objectTypes.length > 0 && !request.objectTypes.includes(object.objectType)) return null;
+        if (embedding.model !== embeddingModel) return null;
+        return { object, similarity: cosine(queryVector, embedding.vector) };
       })
       .filter((item): item is { object: SemanticObject; similarity: number } => item !== null)
       .sort((a, b) => b.similarity - a.similarity)
-      .slice(0, Math.min(Math.max(request.limit ?? 10, 1), 100));
+      .slice(0, Math.min(Math.max(request.topK ?? 10, 1), 100));
 
-    return { results: candidates };
+    return {
+      embeddingModel,
+      results: candidates.map((item, index) => ({
+        ...item,
+        rank: index + 1,
+        provenance: { sourceId: item.object.sourceId },
+      })),
+    };
   }
 }
 
