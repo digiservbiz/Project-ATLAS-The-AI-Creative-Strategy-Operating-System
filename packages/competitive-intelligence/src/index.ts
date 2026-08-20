@@ -5,13 +5,51 @@ import type {
   CreativeSourceAdapter,
 } from "@atlas/contracts";
 
+export interface CreativeArtifactStore {
+  upsert(artifact: CreativeArtifact): Promise<void>;
+  findBySource(source: string, sourceId: string): Promise<CreativeArtifact | null>;
+}
+
+export interface CreativeIndexer {
+  index(artifact: CreativeArtifact): Promise<void>;
+}
+
+export interface IngestionResult {
+  artifacts: CreativeArtifact[];
+  inserted: number;
+  updated: number;
+}
+
 export class CompetitiveCreativeIntelligenceService {
-  constructor(private readonly adapters: CreativeSourceAdapter[]) {}
+  constructor(
+    private readonly adapters: CreativeSourceAdapter[],
+    private readonly store?: CreativeArtifactStore,
+    private readonly indexer?: CreativeIndexer,
+  ) {}
 
   async ingest(query: CreativeIngestionQuery): Promise<CreativeArtifact[]> {
+    const result = await this.ingestAndIndex(query);
+    return result.artifacts;
+  }
+
+  async ingestAndIndex(query: CreativeIngestionQuery): Promise<IngestionResult> {
     const adapters = this.adapters.filter((adapter) => !query.source || adapter.source === query.source);
     const batches = await Promise.all(adapters.map((adapter) => adapter.search(query)));
-    return deduplicate(batches.flat());
+    const artifacts = deduplicate(batches.flat());
+    let inserted = 0;
+    let updated = 0;
+
+    for (const artifact of artifacts) {
+      const existing = this.store
+        ? await this.store.findBySource(artifact.source.source, artifact.source.sourceId)
+        : null;
+      if (existing) updated += 1;
+      else inserted += 1;
+      if (this.store) await this.store.upsert(artifact);
+      if (this.indexer) await this.indexer.index(artifact);
+    }
+
+    return { artifacts, inserted, updated };
   }
 
   buildBasicInsights(artifacts: CreativeArtifact[]): CreativeIntelligenceInsight[] {
