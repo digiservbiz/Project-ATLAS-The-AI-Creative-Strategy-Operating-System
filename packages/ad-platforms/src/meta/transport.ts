@@ -1,4 +1,4 @@
-import { MetaApiError } from "./retry";
+import { MetaApiError, withMetaRetry } from "./retry";
 
 export interface MetaHttpResponse {
   status: number;
@@ -11,7 +11,12 @@ export interface MetaHttpTransport {
 }
 
 export class MetaGraphTransport {
-  constructor(private readonly http: MetaHttpTransport, private readonly accessToken: string, private readonly graphBaseUrl: string) {}
+  constructor(
+    private readonly http: MetaHttpTransport,
+    private readonly accessToken: string,
+    private readonly graphBaseUrl: string,
+    private readonly maxAttempts = 3,
+  ) {}
 
   async get(path: string, params: Record<string, string> = {}) {
     return this.request("GET", path, params);
@@ -22,16 +27,28 @@ export class MetaGraphTransport {
   }
 
   private async request(method: "GET" | "POST", path: string, payload: Record<string, string | unknown>) {
-    const url = new URL(path.startsWith("http") ? path : `${this.graphBaseUrl.replace(/\\/$/, "")}/${path.replace(/^\\//, "")}`);
-    if (method === "GET") {
-      for (const [key, value] of Object.entries(payload)) url.searchParams.set(key, String(value));
-      url.searchParams.set("access_token", this.accessToken);
-    }
-    const response = await this.http.request(method, url.toString(), method === "POST" ? { body: { ...payload, access_token: this.accessToken } } : undefined);
-    const data = await response.json();
-    if (response.status >= 200 && response.status < 300) return data;
-    const errorPayload = (data.error ?? {}) as Record<string, unknown>;
-    const retryable = response.status === 429 || response.status >= 500;
-    throw new MetaApiError(String(errorPayload.message ?? `Meta Graph API request failed: ${response.status}`), response.status, retryable);
+    return withMetaRetry(async () => {
+      const url = new URL(path.startsWith("http") ? path : `${this.graphBaseUrl.replace(/\/$/, "")}/${path.replace(/^\//, "")}`);
+      if (method === "GET") {
+        for (const [key, value] of Object.entries(payload)) url.searchParams.set(key, String(value));
+        url.searchParams.set("access_token", this.accessToken);
+      }
+
+      const response = await this.http.request(
+        method,
+        url.toString(),
+        method === "POST" ? { body: { ...payload, access_token: this.accessToken } } : undefined,
+      );
+      const data = await response.json();
+      if (response.status >= 200 && response.status < 300) return data;
+
+      const errorPayload = (data.error ?? {}) as Record<string, unknown>;
+      const retryable = response.status === 429 || response.status >= 500;
+      throw new MetaApiError(
+        String(errorPayload.message ?? `Meta Graph API request failed: ${response.status}`),
+        response.status,
+        retryable,
+      );
+    }, { maxAttempts: this.maxAttempts });
   }
 }
