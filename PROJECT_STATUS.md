@@ -13,6 +13,8 @@
 - Campaign metrics store + derived metrics: implemented
 - Metrics → Learning bridge: implemented
 - Metrics → ClosedLoopLearningEngine → Memory/Strategy: implemented
+- Platform metrics ingestion contracts: implemented
+- HTTP platform metrics adapters for Meta/TikTok/Shopify: implemented
 - Evidence normalization/provenance: implemented
 - Continuous learning engine: implemented
 - Learning-to-memory bridge: implemented
@@ -20,23 +22,20 @@
 - Content Production Engine: implemented
 
 ## Current end-to-end architecture
-Sources → Research → Strategy → Specialist Agents → Production → QA → Human Approval → Distribution → Testing → Analytics → Persistent Metrics → Learning Signals → Closed-Loop Learning → Memory → Strategy Decisions → Better Strategy
+Sources → Research → Strategy → Specialist Agents → Production → QA → Human Approval → Distribution → Testing → Analytics → Platform Metrics → Persistent Metrics → Learning Signals → Closed-Loop Learning → Memory → Strategy Decisions → Better Strategy
 
-## Persistent campaign state
-ATLAS has a campaign state contract containing campaign identity, objective, current stage/status, strategy, artifacts, approval state, distribution state and experiment references. The initial in-memory implementation maintains current state plus version history and can later be backed by a database without changing consumers.
+## Platform metrics layer
+ATLAS now has a provider-neutral metrics registry and ingestion service plus HTTP adapter contracts for Meta, TikTok and Shopify. Credentials, base URLs and an injected HTTP client are required; the adapters deliberately do not claim that authenticated production accounts are connected.
 
-## Metrics layer
-ATLAS has normalized creative/campaign metrics snapshots for impressions, reach, clicks, CTR, CPC, CPM, conversions, CPA, ROAS, revenue and engagement. Derived metrics can be calculated consistently before persistence.
-
-## Closed-loop learning
-Metric snapshots now flow through the metrics-to-learning bridge into the existing learning-memory and strategy ports. Each generated decision keeps links to the originating metric snapshot and persisted learning-memory evidence, with explicit constraints against overgeneralizing from a single snapshot.
+## Important integration boundary
+The platform adapters normalize external numeric metrics into ATLAS `PlatformMetricRecord` objects while preserving platform, account, campaign/creative identifiers, collection time and raw payload. The next integration maps these records into the canonical `MetricsSnapshot` store and then into the closed-loop learning pipeline.
 
 ## Next implementation priorities
-1. Add durable database persistence for campaign state, snapshots, metrics and learning memory.
-2. Add real platform metric ingestion and attribution.
-3. Add concrete Meta/TikTok/Shopify publishers and experiment runners.
-4. Add automatic scheduled learning cycles and cross-campaign pattern aggregation.
-5. Add end-to-end tests, security controls, rate limits and production hardening.
+1. Map live platform records into canonical campaign/creative metrics and attribution.
+2. Add durable database persistence for campaign state, snapshots, metrics and learning memory.
+3. Add OAuth/token lifecycle and rate-limit-aware production clients.
+4. Add concrete Meta/TikTok/Shopify publishers and experiment runners.
+5. Add scheduled ingestion, cross-campaign pattern aggregation, end-to-end tests and security hardening.
 
 ## Important status note
-The architecture is substantially implemented, but ATLAS is not yet production-complete. External provider credentials, durable production storage, live platform endpoints, security, automated testing and several execution integrations remain.
+The architecture is substantially implemented, but ATLAS is not yet production-complete. External credentials/OAuth, durable production storage, live endpoint validation, security, automated testing and several execution integrations remain.
