@@ -54,10 +54,32 @@ export class SourceCollector implements ResearchCollector {
 export class ResearchCollectorRegistry {
   private readonly collectors = new Map<string, ResearchCollector>();
 
-  register(collector: ResearchCollector): void {
-    const key = collector.constructor.name + ":" + this.collectors.size;
-    this.collectors.set(key, collector);
+  register(id: string, collector: ResearchCollector): void {
+    if (!id.trim()) throw new Error("Collector id is required");
+    if (this.collectors.has(id)) throw new Error(`Collector already registered: ${id}`);
+    this.collectors.set(id, collector);
   }
 
+  unregister(id: string): boolean { return this.collectors.delete(id); }
+  get(id: string): ResearchCollector | undefined { return this.collectors.get(id); }
   all(): ResearchCollector[] { return [...this.collectors.values()]; }
+}
+
+export function createBuiltInSourceAdapters(deps: {
+  webSearch?: ResearchSourceAdapter["search"];
+  reddit?: ResearchSourceAdapter["search"];
+  trends?: ResearchSourceAdapter["search"];
+  reviews?: ResearchSourceAdapter["search"];
+  competitorAds?: ResearchSourceAdapter["search"];
+}): ResearchSourceAdapter[] {
+  const adapters: ResearchSourceAdapter[] = [];
+  const add = (id: string, categories: ResearchCategory[], search?: ResearchSourceAdapter["search"]) => {
+    if (search) adapters.push({ id, categories, search });
+  };
+  add("web-search", ["competitor", "customer", "market", "product", "creative"], deps.webSearch);
+  add("reddit", ["customer", "market", "creative"], deps.reddit);
+  add("trends", ["market", "customer", "creative"], deps.trends);
+  add("reviews", ["customer", "product", "competitor"], deps.reviews);
+  add("competitor-ads", ["competitor", "creative", "market"], deps.competitorAds);
+  return adapters;
 }
