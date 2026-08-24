@@ -9,6 +9,7 @@
 - Research → Strategy bridge: implemented
 - Research-driven strategy orchestrator: implemented
 - Research → specialist creative pipeline: implemented
+- Creative execution loop: implemented
 - Evidence normalization and provenance model: implemented
 - Research synthesis with confidence/freshness: implemented
 - Continuous learning engine: implemented
@@ -16,8 +17,11 @@
 - End-to-end campaign pipeline backbone: implemented
 - Content Production Engine: implemented
 
-## Current research-to-creative architecture
-Sources → Provider Adapters → Reliability Layer → Collector Registry → Evidence Normalization → Provenance/Confidence → Research Intelligence Hub → Insights → Research Strategy Bridge → Strategy Signals → Specialist Positioning → Offer → Angles → Hooks → Scripts → Creative Direction → Production
+## Current end-to-end architecture
+Sources → Provider Adapters → Reliability Layer → Collector Registry → Evidence → Research Intelligence → Strategy → Positioning → Offer → Angles → Hooks → Scripts → Creative Direction → Production → QA → Approval → Distribution → Testing → Analytics → Learning → Memory
+
+## Creative execution loop
+The execution layer now exposes explicit stage runners for production, QA, approval, distribution, testing and analytics. The loop propagates creative artifacts between stages and stops safely when a stage is blocked or fails rather than pretending downstream execution succeeded.
 
 ## Research-derived strategy signals
 - Positioning recommendations
@@ -29,7 +33,7 @@ Sources → Provider Adapters → Reliability Layer → Collector Registry → E
 - Evidence IDs and confidence propagation
 
 ## Specialist pipeline
-The research specialist pipeline now provides explicit interfaces for positioning, offer, angle, hook, script and creative-direction agents. Each stage receives accumulated research-backed signals and preserves the originating evidence IDs and confidence.
+The research specialist pipeline provides explicit interfaces for positioning, offer, angle, hook, script and creative-direction agents. Each stage receives accumulated research-backed signals and preserves originating evidence IDs and confidence.
 
 ## Provider adapter targets
 - Web/search
@@ -38,7 +42,7 @@ The research specialist pipeline now provides explicit interfaces for positionin
 - Reviews/product reviews
 - Competitor/ad intelligence
 
-Provider adapters now have a common client contract and normalized evidence path. They are intentionally provider-agnostic until credentials/endpoints are configured; this avoids falsely claiming that a live external API is connected.
+Provider adapters are intentionally provider-agnostic until credentials/endpoints are configured; this avoids falsely claiming that a live external API is connected.
 
 ## Reliability capabilities
 - Exponential retry/backoff
@@ -49,8 +53,8 @@ Provider adapters now have a common client contract and normalized evidence path
 
 ## Next implementation priorities
 1. Wire real provider credentials/endpoints and live API clients.
-2. Add rate-limit-aware scheduling and persistent caching.
-3. Connect specialist outputs to Content Production, QA, approval, distribution and creative testing.
+2. Connect specialist outputs directly to the execution loop with concrete production/QA/approval/distribution/testing runners.
+3. Add persistent campaign state, metrics storage and rate-limit-aware scheduling.
 4. Add end-to-end tests and production persistence.
 5. Complete external platform integrations and production hardening.
 
