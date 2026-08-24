@@ -6,6 +6,8 @@
 - Built-in source adapter contracts: implemented
 - Provider adapter foundation: implemented
 - Research reliability layer (retry/backoff/cache/source health): implemented
+- Research → Strategy bridge: implemented
+- Research-driven strategy orchestrator: implemented
 - Evidence normalization and provenance model: implemented
 - Research synthesis with confidence/freshness: implemented
 - Continuous learning engine: implemented
@@ -13,8 +15,17 @@
 - End-to-end campaign pipeline backbone: implemented
 - Content Production Engine: implemented
 
-## Current research architecture
-Sources → Provider Adapters → Reliability Layer → Collector Registry → Evidence Normalization → Provenance/Confidence → Research Intelligence Hub → Insights → Knowledge/Memory → Strategy
+## Current research-to-strategy architecture
+Sources → Provider Adapters → Reliability Layer → Collector Registry → Evidence Normalization → Provenance/Confidence → Research Intelligence Hub → Insights → Research Strategy Bridge → Strategy Signals → Knowledge/Memory → Creative/Execution
+
+## Research-derived strategy signals
+- Positioning recommendations
+- Audience signals
+- Creative angles
+- Hook inputs
+- Objection signals
+- Product/market claims
+- Evidence IDs and confidence propagation
 
 ## Provider adapter targets
 - Web/search
@@ -35,7 +46,7 @@ Provider adapters now have a common client contract and normalized evidence path
 ## Next implementation priorities
 1. Wire real provider credentials/endpoints and live API clients.
 2. Add rate-limit-aware scheduling and persistent caching.
-3. Integrate research outputs into specialist strategy agents.
+3. Connect strategy signals to specialist positioning, offer, angle, hook, script and creative-direction agents.
 4. Add end-to-end tests and production persistence.
 5. Complete external platform integrations and production hardening.
 
