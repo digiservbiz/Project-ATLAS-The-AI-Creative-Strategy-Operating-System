@@ -3,6 +3,8 @@
 ## Latest build
 - Research Intelligence Hub: implemented
 - Research collector registry/adapter layer: implemented
+- Built-in source adapter contracts: implemented
+- Source adapter registry with duplicate protection: implemented
 - Evidence normalization and provenance model: implemented
 - Research synthesis with confidence/freshness: implemented
 - Continuous learning engine: implemented
@@ -11,7 +13,16 @@
 - Content Production Engine: implemented
 
 ## Current research architecture
-Sources → Collector Adapters → Evidence Normalization → Provenance/Confidence → Research Intelligence Hub → Insights → Knowledge/Memory → Strategy
+Sources → Source Adapters → Collector Registry → Evidence Normalization → Provenance/Confidence → Research Intelligence Hub → Insights → Knowledge/Memory → Strategy
+
+## Source adapter targets
+- Web/search
+- Reddit/community
+- Trends/search signals
+- Reviews/product reviews
+- Competitor/ad intelligence
+
+The adapter contracts are now ready for provider-specific implementations and credentials. The repository does not claim that external providers are connected until those integrations are actually implemented and configured.
 
 ## Next implementation priorities
 1. Connect real source providers/adapters (web/search, Reddit/community, competitor/ad sources, trends/search, reviews/product sources).
