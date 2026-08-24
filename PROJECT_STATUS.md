@@ -8,6 +8,7 @@
 - Research reliability layer (retry/backoff/cache/source health): implemented
 - Research → Strategy bridge: implemented
 - Research-driven strategy orchestrator: implemented
+- Research → specialist creative pipeline: implemented
 - Evidence normalization and provenance model: implemented
 - Research synthesis with confidence/freshness: implemented
 - Continuous learning engine: implemented
@@ -15,8 +16,8 @@
 - End-to-end campaign pipeline backbone: implemented
 - Content Production Engine: implemented
 
-## Current research-to-strategy architecture
-Sources → Provider Adapters → Reliability Layer → Collector Registry → Evidence Normalization → Provenance/Confidence → Research Intelligence Hub → Insights → Research Strategy Bridge → Strategy Signals → Knowledge/Memory → Creative/Execution
+## Current research-to-creative architecture
+Sources → Provider Adapters → Reliability Layer → Collector Registry → Evidence Normalization → Provenance/Confidence → Research Intelligence Hub → Insights → Research Strategy Bridge → Strategy Signals → Specialist Positioning → Offer → Angles → Hooks → Scripts → Creative Direction → Production
 
 ## Research-derived strategy signals
 - Positioning recommendations
@@ -26,6 +27,9 @@ Sources → Provider Adapters → Reliability Layer → Collector Registry → E
 - Objection signals
 - Product/market claims
 - Evidence IDs and confidence propagation
+
+## Specialist pipeline
+The research specialist pipeline now provides explicit interfaces for positioning, offer, angle, hook, script and creative-direction agents. Each stage receives accumulated research-backed signals and preserves the originating evidence IDs and confidence.
 
 ## Provider adapter targets
 - Web/search
@@ -46,7 +50,7 @@ Provider adapters now have a common client contract and normalized evidence path
 ## Next implementation priorities
 1. Wire real provider credentials/endpoints and live API clients.
 2. Add rate-limit-aware scheduling and persistent caching.
-3. Connect strategy signals to specialist positioning, offer, angle, hook, script and creative-direction agents.
+3. Connect specialist outputs to Content Production, QA, approval, distribution and creative testing.
 4. Add end-to-end tests and production persistence.
 5. Complete external platform integrations and production hardening.
 
