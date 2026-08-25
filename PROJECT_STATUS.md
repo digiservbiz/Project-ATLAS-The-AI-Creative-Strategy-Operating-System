@@ -13,6 +13,7 @@
 - Campaign metrics store + derived metrics: implemented
 - Metrics → Learning bridge: implemented
 - Metrics → ClosedLoopLearningEngine → Memory/Strategy: implemented
+- Confidence-aware learning-memory retrieval: implemented
 - Platform metrics ingestion contracts: implemented
 - HTTP platform metrics adapters for Meta/TikTok/Shopify: implemented
 - Evidence normalization/provenance: implemented
@@ -24,11 +25,11 @@
 ## Current end-to-end architecture
 Sources → Research → Strategy → Specialist Agents → Production → QA → Human Approval → Distribution → Testing → Analytics → Platform Metrics → Persistent Metrics → Learning Signals → Closed-Loop Learning → Memory → Strategy Decisions → Better Strategy
 
-## Platform metrics layer
-ATLAS now has a provider-neutral metrics registry and ingestion service plus HTTP adapter contracts for Meta, TikTok and Shopify. Credentials, base URLs and an injected HTTP client are required; the adapters deliberately do not claim that authenticated production accounts are connected.
+## Learning-memory integration
+Platform/campaign metrics can now be transformed into canonical learning signals and passed into the existing ClosedLoopLearningEngine, which persists learning memories and creates evidence-linked strategy decisions. Memory retrieval can be filtered by category and minimum confidence.
 
-## Important integration boundary
-The platform adapters normalize external numeric metrics into ATLAS `PlatformMetricRecord` objects while preserving platform, account, campaign/creative identifiers, collection time and raw payload. The next integration maps these records into the canonical `MetricsSnapshot` store and then into the closed-loop learning pipeline.
+## Platform metrics layer
+ATLAS has provider-neutral metrics ingestion plus HTTP adapter contracts for Meta, TikTok and Shopify. Credentials, base URLs and an injected HTTP client are required; these adapters do not claim that authenticated production accounts are connected.
 
 ## Next implementation priorities
 1. Map live platform records into canonical campaign/creative metrics and attribution.
