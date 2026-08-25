@@ -32,6 +32,8 @@
 - PostgreSQL core schema migration: implemented
 - PostgreSQL bootstrap/config + transaction boundaries: implemented
 - Durable jobs/decisions/idempotency database schema: implemented
+- Durable persistence contracts for campaigns/metrics/memory/decisions: implemented
+- Transactional persistence boundary: implemented
 - Canonical platform metrics ingestion: implemented
 - Meta/TikTok/Shopify canonical metric mappers: implemented
 - Authenticated platform client abstraction: implemented
@@ -55,7 +57,7 @@
 Approved creative → Platform Execution → Scheduled Ingestion → Durable Jobs → Canonical Metrics + Purchases → Attribution → Persistent Metrics → Learning Signals → Cross-Campaign Patterns → Strategy Decisions → Memory → Experiment/Budget Optimization → Better Creative
 
 ## Current status
-The core ATLAS architecture and most production boundaries are implemented. Durable job persistence, row-lock based worker claiming, generic idempotency, strategy-decision persistence boundary, memory feedback, experiment execution control, and production security/operations gates are now covered.
+The core ATLAS architecture and most production boundaries are implemented. Durable persistence contracts and transaction boundaries are now added on top of the existing PostgreSQL repository/schema foundation.
 
 ## What remains before production autonomy
 - Real Meta/TikTok/Shopify application credentials and OAuth authorization.
