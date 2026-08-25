@@ -9,8 +9,11 @@
 - Research → specialist creative pipeline: implemented
 - Creative execution loop: implemented
 - Concrete Production/QA/Approval/Distribution/Testing/Analytics runners: implemented
+- Approved Creative → Platform Execution adapter: implemented
+- Campaign publishing service with approval gate: implemented
 - Persistent campaign state contract + versioned snapshots: implemented
 - Campaign metrics store + derived metrics: implemented
+- Campaign/creative purchase attribution: implemented
 - Metrics → Learning bridge: implemented
 - Metrics → ClosedLoopLearningEngine → Memory/Strategy: implemented
 - Confidence-aware learning-memory retrieval: implemented
@@ -37,19 +40,20 @@
 - Content Production Engine: implemented
 
 ## Current end-to-end architecture
-Sources → Research → Strategy → Specialist Agents → Production → QA → Human Approval → Distribution → Testing → Analytics → Meta/TikTok/Shopify APIs → Canonical Metrics → PostgreSQL → Learning Signals → Closed-Loop Learning → Persistent Memory → Strategy Decisions → Better Strategy
+Research → Strategy → Creative → Production → QA → Human Approval → Platform Execution → Campaign State → Platform Metrics + Purchases → Attribution → PostgreSQL → Learning Signals → Closed-Loop Learning → Persistent Memory → Strategy Decisions → Better Creative
 
-## Platform clients
-ATLAS now has provider-neutral authenticated request abstractions and concrete client surfaces for Meta Ads, TikTok Ads and Shopify Admin APIs. The clients cover core campaign/ad objects and reporting/order/product retrieval, with creation support where the provider contract is appropriate.
+## Execution layer
+Approved creatives can now be routed to a configured Meta/TikTok/Shopify publisher through a provider-neutral execution adapter. Campaign publishing is approval-gated and records external publication IDs back into campaign state. The publisher itself remains dependency-injected so live API credentials and platform-specific publishing payloads are explicit configuration rather than hidden assumptions.
 
-Live operation still requires valid OAuth authorization, platform app credentials, account/shop identifiers and provider-compliant permissions/scopes. No live production account is claimed by code presence alone.
+## Attribution layer
+Purchase events can now be grouped by campaign/creative and transformed into revenue/conversion attribution with a confidence score. Attribution can be merged into canonical metric snapshots before persistence and learning.
 
 ## Next implementation priorities
-1. Add provider-specific transport implementations and pagination/error normalization.
-2. Add campaign/ad publishing workflows through the Creative Execution Loop.
-3. Add scheduled ingestion and canonical attribution across ad spend, conversions and Shopify purchases.
-4. Add cross-campaign pattern aggregation and automated learning-memory updates.
+1. Implement provider-specific publishing payloads for Meta/TikTok and Shopify commerce actions.
+2. Add scheduled performance/purchase ingestion and automatic attribution.
+3. Feed attributed metrics automatically into learning-memory updates.
+4. Add cross-campaign pattern aggregation and experiment optimization.
 5. Add end-to-end tests, observability, security hardening and production deployment configuration.
 
 ## Important status note
-The architecture is substantially implemented, but ATLAS is not yet production-complete. External credentials/OAuth authorization, production database provisioning, live endpoint validation, production transport wiring, security, automated testing and several execution integrations remain.
+The architecture is substantially implemented, but ATLAS is not yet production-complete. External credentials/OAuth authorization, production database provisioning, live endpoint validation, provider publishing configuration, security, automated testing and several execution integrations remain.
