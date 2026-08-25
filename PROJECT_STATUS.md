@@ -26,6 +26,9 @@
 - One-time OAuth state store: implemented
 - Production secret-manager adapter boundary: implemented
 - Rate-limit-aware resilient request layer: implemented
+- Meta OAuth client: implemented
+- TikTok OAuth client: implemented
+- Shopify OAuth client: implemented
 - Evidence normalization/provenance: implemented
 - Continuous learning engine: implemented
 - Learning-to-memory bridge: implemented
@@ -35,17 +38,17 @@
 ## Current end-to-end architecture
 Sources → Research → Strategy → Specialist Agents → Production → QA → Human Approval → Distribution → Testing → Analytics → Platform Metrics → Canonical Metrics → PostgreSQL → Learning Signals → Closed-Loop Learning → Persistent Memory → Strategy Decisions → Better Strategy
 
-## OAuth/integration layer
-ATLAS now has provider-neutral OAuth authorization URL and code-exchange contracts, provider registry, expiring one-time OAuth state storage, secure token lifecycle management, production secret-manager boundaries, and rate-limit-aware resilient requests.
+## Provider OAuth layer
+Concrete OAuth clients now generate provider authorization URLs and exchange authorization codes for Meta, TikTok and Shopify using injected HTTP transport and application credentials. Token refresh behavior is provider-specific: Meta uses token exchange, TikTok supports refresh tokens, and Shopify offline tokens do not use a refresh-token flow.
 
-Provider-specific client implementations still require real application credentials, redirect URIs, scopes and provider endpoint configuration. No live account connection is claimed by the architecture alone.
+These clients are integration-ready but not authenticated by default. Real application credentials, redirect URIs, scopes and approved provider apps are still required.
 
 ## Next implementation priorities
-1. Implement provider-specific OAuth clients and callback handlers for Meta, TikTok and Shopify.
+1. Add provider-specific API clients for campaign/ad/creative publishing and account discovery.
 2. Map live platform records into canonical attribution across campaigns, creatives and purchases.
-3. Add concrete Meta/TikTok/Shopify publishers and experiment runners.
-4. Add scheduled ingestion, cross-campaign pattern aggregation and automated learning-memory updates.
-5. Add end-to-end tests, observability and security hardening.
+3. Add scheduled ingestion, cross-campaign pattern aggregation and automated learning-memory updates.
+4. Add end-to-end tests, OAuth callback handlers, observability and security hardening.
+5. Complete production deployment and credential configuration.
 
 ## Important status note
 The architecture is substantially implemented, but ATLAS is not yet production-complete. External application credentials/OAuth authorization, production database provisioning, live endpoint validation, security, automated testing and several execution integrations remain.
