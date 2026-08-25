@@ -11,6 +11,9 @@
 - Concrete Production/QA/Approval/Distribution/Testing/Analytics runners: implemented
 - Approved Creative → Platform Execution adapter: implemented
 - Campaign publishing service with approval gate: implemented
+- Scheduled platform ingestion scheduler: implemented
+- Ingestion → Attribution → Persistence → Learning pipeline: implemented
+- Cross-campaign learning pattern aggregation: implemented
 - Persistent campaign state contract + versioned snapshots: implemented
 - Campaign metrics store + derived metrics: implemented
 - Campaign/creative purchase attribution: implemented
@@ -39,21 +42,20 @@
 - End-to-end campaign pipeline backbone: implemented
 - Content Production Engine: implemented
 
-## Current end-to-end architecture
-Research → Strategy → Creative → Production → QA → Human Approval → Platform Execution → Campaign State → Platform Metrics + Purchases → Attribution → PostgreSQL → Learning Signals → Closed-Loop Learning → Persistent Memory → Strategy Decisions → Better Creative
+## Autonomous optimization loop
+Approved creative → Platform Execution → Scheduled Ingestion → Canonical Metrics + Purchases → Attribution → Persistent Metrics → Learning Signals → Cross-Campaign Patterns → Memory/Strategy Updates → Better Creative
 
-## Execution layer
-Approved creatives can now be routed to a configured Meta/TikTok/Shopify publisher through a provider-neutral execution adapter. Campaign publishing is approval-gated and records external publication IDs back into campaign state. The publisher itself remains dependency-injected so live API credentials and platform-specific publishing payloads are explicit configuration rather than hidden assumptions.
+## Current status
+The autonomous data path is now structurally connected. A scheduler can trigger provider ingestion jobs; ingestion batches can be attributed, persisted and sent to learning; cross-campaign signals can be aggregated into reusable patterns.
 
-## Attribution layer
-Purchase events can now be grouped by campaign/creative and transformed into revenue/conversion attribution with a confidence score. Attribution can be merged into canonical metric snapshots before persistence and learning.
+Live autonomy still requires production scheduler infrastructure, provider credentials/OAuth authorization, concrete provider transport/publisher wiring, database provisioning and validated live endpoints.
 
 ## Next implementation priorities
-1. Implement provider-specific publishing payloads for Meta/TikTok and Shopify commerce actions.
-2. Add scheduled performance/purchase ingestion and automatic attribution.
-3. Feed attributed metrics automatically into learning-memory updates.
-4. Add cross-campaign pattern aggregation and experiment optimization.
+1. Implement provider-specific publishing payloads and provider transports.
+2. Add production scheduler/queue workers with durable job state and idempotency.
+3. Add automatic learning-memory persistence and strategy decision generation from aggregated patterns.
+4. Add experiment optimization and budget/reallocation policies.
 5. Add end-to-end tests, observability, security hardening and production deployment configuration.
 
 ## Important status note
-The architecture is substantially implemented, but ATLAS is not yet production-complete. External credentials/OAuth authorization, production database provisioning, live endpoint validation, provider publishing configuration, security, automated testing and several execution integrations remain.
+The architecture is substantially implemented, but ATLAS is not yet production-complete. External credentials/OAuth authorization, production database provisioning, live endpoint validation, provider publishing configuration, durable worker infrastructure, security, automated testing and several execution integrations remain.
