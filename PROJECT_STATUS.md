@@ -12,8 +12,11 @@
 - Approved Creative → Platform Execution adapter: implemented
 - Campaign publishing service with approval gate: implemented
 - Scheduled platform ingestion scheduler: implemented
+- Durable job queue + worker retry foundation: implemented
 - Ingestion → Attribution → Persistence → Learning pipeline: implemented
 - Cross-campaign learning pattern aggregation: implemented
+- Pattern → Strategy Decision engine: implemented
+- Confidence-aware Experiment Optimizer + budget allocation: implemented
 - Persistent campaign state contract + versioned snapshots: implemented
 - Campaign metrics store + derived metrics: implemented
 - Campaign/creative purchase attribution: implemented
@@ -43,19 +46,19 @@
 - Content Production Engine: implemented
 
 ## Autonomous optimization loop
-Approved creative → Platform Execution → Scheduled Ingestion → Canonical Metrics + Purchases → Attribution → Persistent Metrics → Learning Signals → Cross-Campaign Patterns → Memory/Strategy Updates → Better Creative
+Approved creative → Platform Execution → Scheduled Ingestion → Durable Jobs → Canonical Metrics + Purchases → Attribution → Persistent Metrics → Learning Signals → Cross-Campaign Patterns → Strategy Decisions → Experiment/Budget Optimization → Memory/Strategy Updates → Better Creative
 
 ## Current status
-The autonomous data path is now structurally connected. A scheduler can trigger provider ingestion jobs; ingestion batches can be attributed, persisted and sent to learning; cross-campaign signals can be aggregated into reusable patterns.
+The autonomous optimization architecture now includes a durable queue/worker boundary with retry/backoff semantics, strategy decisions generated from cross-campaign patterns, and confidence-aware experiment budget allocation.
 
-Live autonomy still requires production scheduler infrastructure, provider credentials/OAuth authorization, concrete provider transport/publisher wiring, database provisioning and validated live endpoints.
+Live autonomy still requires production queue/database adapters, provider credentials/OAuth authorization, concrete provider transport/publisher wiring, validated live endpoints, observability and security controls.
 
 ## Next implementation priorities
-1. Implement provider-specific publishing payloads and provider transports.
-2. Add production scheduler/queue workers with durable job state and idempotency.
-3. Add automatic learning-memory persistence and strategy decision generation from aggregated patterns.
-4. Add experiment optimization and budget/reallocation policies.
+1. Implement production queue persistence and idempotency/lease semantics.
+2. Complete provider-specific publishing payloads and transports.
+3. Persist strategy decisions and connect them to the Orchestrator/Memory system.
+4. Add automated experiment creation, stopping, scaling and budget reallocation workflows.
 5. Add end-to-end tests, observability, security hardening and production deployment configuration.
 
 ## Important status note
-The architecture is substantially implemented, but ATLAS is not yet production-complete. External credentials/OAuth authorization, production database provisioning, live endpoint validation, provider publishing configuration, durable worker infrastructure, security, automated testing and several execution integrations remain.
+The architecture is substantially implemented, but ATLAS is not yet production-complete. External credentials/OAuth authorization, production database/queue provisioning, live endpoint validation, provider publishing configuration, observability, security, automated testing and several execution integrations remain.
