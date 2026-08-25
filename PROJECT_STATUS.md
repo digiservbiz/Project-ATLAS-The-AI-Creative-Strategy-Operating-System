@@ -13,10 +13,14 @@
 - Campaign publishing service with approval gate: implemented
 - Scheduled platform ingestion scheduler: implemented
 - Durable job queue + worker retry foundation: implemented
+- PostgreSQL durable job store with row locking: implemented
+- Generic idempotent job execution guard: implemented
 - Ingestion → Attribution → Persistence → Learning pipeline: implemented
 - Cross-campaign learning pattern aggregation: implemented
 - Pattern → Strategy Decision engine: implemented
+- Strategy Decision → Memory bridge: implemented
 - Confidence-aware Experiment Optimizer + budget allocation: implemented
+- Experiment optimizer → execution control workflow: implemented
 - Persistent campaign state contract + versioned snapshots: implemented
 - Campaign metrics store + derived metrics: implemented
 - Campaign/creative purchase attribution: implemented
@@ -27,6 +31,7 @@
 - PostgreSQL repository implementations: implemented
 - PostgreSQL core schema migration: implemented
 - PostgreSQL bootstrap/config + transaction boundaries: implemented
+- Durable jobs/decisions/idempotency database schema: implemented
 - Canonical platform metrics ingestion: implemented
 - Meta/TikTok/Shopify canonical metric mappers: implemented
 - Authenticated platform client abstraction: implemented
@@ -44,21 +49,20 @@
 - Learning-to-memory bridge: implemented
 - End-to-end campaign pipeline backbone: implemented
 - Content Production Engine: implemented
+- Production security/operations/autonomy gates: documented
 
 ## Autonomous optimization loop
-Approved creative → Platform Execution → Scheduled Ingestion → Durable Jobs → Canonical Metrics + Purchases → Attribution → Persistent Metrics → Learning Signals → Cross-Campaign Patterns → Strategy Decisions → Experiment/Budget Optimization → Memory/Strategy Updates → Better Creative
+Approved creative → Platform Execution → Scheduled Ingestion → Durable Jobs → Canonical Metrics + Purchases → Attribution → Persistent Metrics → Learning Signals → Cross-Campaign Patterns → Strategy Decisions → Memory → Experiment/Budget Optimization → Better Creative
 
 ## Current status
-The autonomous optimization architecture now includes a durable queue/worker boundary with retry/backoff semantics, strategy decisions generated from cross-campaign patterns, and confidence-aware experiment budget allocation.
+The core ATLAS architecture and most production boundaries are implemented. Durable job persistence, row-lock based worker claiming, generic idempotency, strategy-decision persistence boundary, memory feedback, experiment execution control, and production security/operations gates are now covered.
 
-Live autonomy still requires production queue/database adapters, provider credentials/OAuth authorization, concrete provider transport/publisher wiring, validated live endpoints, observability and security controls.
+## What remains before production autonomy
+- Real Meta/TikTok/Shopify application credentials and OAuth authorization.
+- Production infrastructure provisioning: PostgreSQL, durable workers/queue runtime, secrets manager, monitoring and backups.
+- Provider-specific transport/publishing configuration and live endpoint validation.
+- Full end-to-end integration tests against authorized test accounts/sandboxes where available.
+- Final tenant-isolation/security review and operational alerting.
+- Human approval/policy configuration for high-impact autonomous actions.
 
-## Next implementation priorities
-1. Implement production queue persistence and idempotency/lease semantics.
-2. Complete provider-specific publishing payloads and transports.
-3. Persist strategy decisions and connect them to the Orchestrator/Memory system.
-4. Add automated experiment creation, stopping, scaling and budget reallocation workflows.
-5. Add end-to-end tests, observability, security hardening and production deployment configuration.
-
-## Important status note
-The architecture is substantially implemented, but ATLAS is not yet production-complete. External credentials/OAuth authorization, production database/queue provisioning, live endpoint validation, provider publishing configuration, observability, security, automated testing and several execution integrations remain.
+These are external deployment/configuration and validation requirements; they cannot honestly be marked complete merely by adding code to the repository.
