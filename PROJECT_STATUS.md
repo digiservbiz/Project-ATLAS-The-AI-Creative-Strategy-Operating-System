@@ -52,12 +52,13 @@
 - End-to-end campaign pipeline backbone: implemented
 - Content Production Engine: implemented
 - Production security/operations/autonomy gates: documented
+- Explicit production-readiness contract: implemented
 
 ## Autonomous optimization loop
 Approved creative → Platform Execution → Scheduled Ingestion → Durable Jobs → Canonical Metrics + Purchases → Attribution → Persistent Metrics → Learning Signals → Cross-Campaign Patterns → Strategy Decisions → Memory → Experiment/Budget Optimization → Better Creative
 
 ## Current status
-The core ATLAS architecture and most production boundaries are implemented. Durable persistence contracts and transaction boundaries are now added on top of the existing PostgreSQL repository/schema foundation.
+The core ATLAS architecture and most production boundaries are implemented. Production readiness is now represented explicitly as a set of checkable gates rather than being inferred from code presence.
 
 ## What remains before production autonomy
 - Real Meta/TikTok/Shopify application credentials and OAuth authorization.
