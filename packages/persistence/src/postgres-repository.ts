@@ -22,3 +22,15 @@ export class PostgresLearningRepository implements LearningRepository {
   async save(record: LearningRecord) { await this.db.query("INSERT INTO atlas_learning (id, campaign_id, payload, created_at) VALUES ($1,$2,$3,$4)", [record.id, record.campaignId, JSON.stringify(record.payload), record.createdAt]); }
   async search(campaignId: string, limit = 20) { const r = await this.db.query<LearningRecord>("SELECT id, campaign_id AS \"campaignId\", payload, created_at AS \"createdAt\" FROM atlas_learning WHERE campaign_id=$1 ORDER BY created_at DESC LIMIT $2", [campaignId, limit]); return r.rows; }
 }
+
+export class PostgresTransaction {
+  constructor(private readonly db: PostgresClient) {}
+  async begin() { await this.db.query("BEGIN"); }
+  async commit() { await this.db.query("COMMIT"); }
+  async rollback() { await this.db.query("ROLLBACK"); }
+  async run<T>(work: () => Promise<T>): Promise<T> {
+    await this.begin();
+    try { const result = await work(); await this.commit(); return result; }
+    catch (error) { await this.rollback(); throw error; }
+  }
+}
