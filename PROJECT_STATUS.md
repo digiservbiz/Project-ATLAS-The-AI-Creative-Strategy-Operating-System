@@ -22,24 +22,23 @@
 - Runtime/worker integration tests: implemented
 - Experiment metrics → variant resolution → learning signal pipeline: implemented
 - Production readiness gate: implemented
+- Production secret-store abstraction: implemented
+- Production health-check service: implemented
 
 ## Autonomous optimization loop
 Approved creative → Platform Execution → Scheduled Ingestion → PostgreSQL Durable Jobs → Production Worker → Canonical Metrics + Purchases → Attribution → Persistent Metrics → Learning Signals → Cross-Campaign Patterns → Strategy Decisions → Memory → Experiment/Budget Optimization → Better Creative
 
-## Experiment learning layer
-Experiment performance records can now be resolved to experiment variants through an injected resolver, evaluated by the experiment engine, and emitted as learning signals through an injected sink. This keeps platform-specific metric identity separate from experiment identity and makes the production persistence/event transport replaceable.
-
-## Production readiness layer
-ATLAS now has a readiness gate that evaluates deployment prerequisites including database, secrets management, scheduler, monitoring, backups, platform credentials, end-to-end tests, tenant-isolation review and human-approval policy configuration. The gate reports blocking failures rather than allowing an unverified system to be labeled production-ready.
+## Production security/operations foundation
+ATLAS now exposes a provider-backed secret-store boundary so production secret managers can be injected without coupling application code to a vendor. A read-only environment provider is included for local/development use. ATLAS also has a health-check service that aggregates dependency checks into a single readiness/health report and fails closed when a check throws.
 
 ## Current status
-The core application architecture and production boundaries are substantially implemented. The runtime is connected to a production-oriented PostgreSQL job store and executable worker composition. Integration testing covers the worker/runtime path at the unit boundary, the experiment-to-learning integration is wired, and deployment readiness can now be evaluated explicitly.
+The core application architecture and production boundaries are substantially implemented. The runtime is connected to a production-oriented PostgreSQL job store and executable worker composition. Experiment-to-learning integration is wired, deployment readiness can be evaluated explicitly, and the first production security/operations abstractions are now in place.
 
 ## What remains before production autonomy
 - Configure a real PostgreSQL connection pool/client and run migrations in the target deployment.
-- Real Meta/TikTok/Shopify application credentials and OAuth authorization.
+- Connect a real secrets manager and real Meta/TikTok/Shopify credentials/OAuth.
 - Provider-specific transport/publishing configuration and live endpoint validation.
-- Production scheduler/worker deployment, secrets manager, monitoring, backups and alerting.
+- Production scheduler/worker deployment, monitoring, backups and alerting.
 - Full end-to-end tests against authorized test accounts/sandboxes where available.
 - Final tenant-isolation/security review and human approval/policy configuration.
 
