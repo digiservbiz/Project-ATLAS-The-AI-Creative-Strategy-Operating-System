@@ -14,16 +14,18 @@
 - Persistent ATLAS Runtime execution boundary: implemented
 - Runtime → durable workflow queue submission: implemented
 - Runtime worker + polling loop: implemented
-- Runtime worker integration test: implemented
+- Production Workflow Worker → Runtime execution: implemented
+- Production runtime composition factory: implemented
+- Runtime/worker integration tests: implemented
 
 ## Autonomous optimization loop
 Approved creative → Platform Execution → Scheduled Ingestion → Durable Jobs → Canonical Metrics + Purchases → Attribution → Persistent Metrics → Learning Signals → Cross-Campaign Patterns → Strategy Decisions → Memory → Experiment/Budget Optimization → Better Creative
 
 ## Runtime/worker layer
-The runtime now has an explicit worker boundary: submitted workflow jobs can be claimed from the durable-job abstraction and executed through the existing ATLAS Runtime. The worker handles missing handlers and delegates failures to the queue retry/backoff policy. A polling loop provides the process-level execution boundary without coupling ATLAS to a specific queue vendor.
+The runtime now has an explicit production composition boundary: workflow jobs can be claimed from a JobStore and executed through the ATLAS Runtime and existing Orchestrator. The worker delegates retry scheduling to the durable queue policy, while the composition factory centralizes runtime dependency wiring. Integration coverage verifies queue → worker → runtime → orchestrator execution.
 
 ## Current status
-The core application architecture is substantially implemented and the runtime is now connected to an executable worker boundary. Remaining work is primarily production infrastructure/provider validation and end-to-end hardening rather than creating more standalone architecture.
+The core application architecture is substantially implemented and the runtime is connected to an executable worker boundary. Remaining work is primarily production infrastructure/provider validation and end-to-end hardening rather than creating more standalone architecture.
 
 ## What remains before production autonomy
 - Replace/integrate the in-memory queue with the existing production PostgreSQL/durable queue implementation and worker lease semantics.
