@@ -53,12 +53,17 @@
 - Content Production Engine: implemented
 - Production security/operations/autonomy gates: documented
 - Explicit production-readiness contract: implemented
+- Persistent ATLAS Runtime execution boundary: implemented
+- Runtime workflow integration tests: implemented
 
 ## Autonomous optimization loop
 Approved creative → Platform Execution → Scheduled Ingestion → Durable Jobs → Canonical Metrics + Purchases → Attribution → Persistent Metrics → Learning Signals → Cross-Campaign Patterns → Strategy Decisions → Memory → Experiment/Budget Optimization → Better Creative
 
+## Runtime layer
+ATLAS now has a persistent runtime boundary around the existing orchestrator. Runtime executions are stored with explicit lifecycle states: draft, running, awaiting_approval, completed and failed. Duplicate starts for an already-running/approval-paused run are safely ignored, and workflow execution errors become explicit failed runtime state.
+
 ## Current status
-The core ATLAS architecture and most production boundaries are implemented. Production readiness is now represented explicitly as a set of checkable gates rather than being inferred from code presence.
+The core ATLAS architecture and most production boundaries are implemented. The runtime layer now provides a single execution boundary around the orchestrator while preserving the existing human-approval pause semantics.
 
 ## What remains before production autonomy
 - Real Meta/TikTok/Shopify application credentials and OAuth authorization.
