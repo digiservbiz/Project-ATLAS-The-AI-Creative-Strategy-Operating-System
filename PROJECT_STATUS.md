@@ -55,15 +55,18 @@
 - Explicit production-readiness contract: implemented
 - Persistent ATLAS Runtime execution boundary: implemented
 - Runtime workflow integration tests: implemented
+- Runtime → durable workflow queue submission: implemented
+- Runtime package exports/build/test/typecheck contract: implemented
+- Runtime queue integration test: implemented
 
 ## Autonomous optimization loop
 Approved creative → Platform Execution → Scheduled Ingestion → Durable Jobs → Canonical Metrics + Purchases → Attribution → Persistent Metrics → Learning Signals → Cross-Campaign Patterns → Strategy Decisions → Memory → Experiment/Budget Optimization → Better Creative
 
 ## Runtime layer
-ATLAS now has a persistent runtime boundary around the existing orchestrator. Runtime executions are stored with explicit lifecycle states: draft, running, awaiting_approval, completed and failed. Duplicate starts for an already-running/approval-paused run are safely ignored, and workflow execution errors become explicit failed runtime state.
+ATLAS now has a production-runtime boundary around the existing orchestrator. Runtime submissions are persisted first and then placed on a durable workflow queue. Execution updates the runtime lifecycle and preserves the orchestrator's dependency/approval semantics. The runtime package now exposes its public entry point and declares build, test and typecheck scripts.
 
 ## Current status
-The core ATLAS architecture and most production boundaries are implemented. The runtime layer now provides a single execution boundary around the orchestrator while preserving the existing human-approval pause semantics.
+The core ATLAS architecture and most production boundaries are implemented. The runtime-to-queue integration is now structurally complete and covered by a runtime integration test.
 
 ## What remains before production autonomy
 - Real Meta/TikTok/Shopify application credentials and OAuth authorization.
