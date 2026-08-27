@@ -10,25 +10,28 @@
 - Cross-campaign pattern aggregation + strategy decisions: implemented
 - Experiment optimizer + budget allocation: implemented
 - PostgreSQL persistence contracts/schema + durable job foundation: implemented
+- PostgreSQL durable job store with atomic SKIP LOCKED claiming: implemented
+- Worker lease recovery: implemented
 - Idempotency/retry foundation: implemented
 - Persistent ATLAS Runtime execution boundary: implemented
 - Runtime → durable workflow queue submission: implemented
 - Runtime worker + polling loop: implemented
 - Production Workflow Worker → Runtime execution: implemented
+- PostgreSQL Worker → Runtime composition: implemented
 - Production runtime composition factory: implemented
 - Runtime/worker integration tests: implemented
 
 ## Autonomous optimization loop
-Approved creative → Platform Execution → Scheduled Ingestion → Durable Jobs → Canonical Metrics + Purchases → Attribution → Persistent Metrics → Learning Signals → Cross-Campaign Patterns → Strategy Decisions → Memory → Experiment/Budget Optimization → Better Creative
+Approved creative → Platform Execution → Scheduled Ingestion → PostgreSQL Durable Jobs → Production Worker → Canonical Metrics + Purchases → Attribution → Persistent Metrics → Learning Signals → Cross-Campaign Patterns → Strategy Decisions → Memory → Experiment/Budget Optimization → Better Creative
 
 ## Runtime/worker layer
-The runtime now has an explicit production composition boundary: workflow jobs can be claimed from a JobStore and executed through the ATLAS Runtime and existing Orchestrator. The worker delegates retry scheduling to the durable queue policy, while the composition factory centralizes runtime dependency wiring. Integration coverage verifies queue → worker → runtime → orchestrator execution.
+The production worker can now be composed with the PostgreSQL durable job store. Job claiming is atomic and uses row locking with SKIP LOCKED semantics, while expired worker leases can be recovered back to the queue. Workflow jobs execute through the ATLAS Runtime and existing Orchestrator rather than bypassing the runtime lifecycle.
 
 ## Current status
-The core application architecture is substantially implemented and the runtime is connected to an executable worker boundary. Remaining work is primarily production infrastructure/provider validation and end-to-end hardening rather than creating more standalone architecture.
+The core application architecture and production boundaries are substantially implemented. The runtime is connected to a production-oriented PostgreSQL job store and executable worker composition. Integration testing covers the worker/runtime path at the unit boundary.
 
 ## What remains before production autonomy
-- Replace/integrate the in-memory queue with the existing production PostgreSQL/durable queue implementation and worker lease semantics.
+- Configure a real PostgreSQL connection pool/client and run migrations in the target deployment.
 - Real Meta/TikTok/Shopify application credentials and OAuth authorization.
 - Provider-specific transport/publishing configuration and live endpoint validation.
 - Production scheduler/worker deployment, secrets manager, monitoring, backups and alerting.
