@@ -1,0 +1,3 @@
+export interface RetrievalCandidate { id:string; similarity:number; performance:number; recency:number; audienceMatch:number; platformMatch:number; marketMatch:number; objectiveMatch:number; creativeTypeMatch:number; confidence:number; }
+export interface RankedCandidate extends RetrievalCandidate { score:number; }
+export function rankByOutcome(candidates:RetrievalCandidate[]):RankedCandidate[] { return candidates.map(c=>({...c,score:0.30*c.similarity+0.20*c.performance+0.10*c.recency+0.10*c.audienceMatch+0.08*c.platformMatch+0.06*c.marketMatch+0.06*c.objectiveMatch+0.05*c.creativeTypeMatch+0.05*c.confidence})).sort((a,b)=>b.score-a.score); }
