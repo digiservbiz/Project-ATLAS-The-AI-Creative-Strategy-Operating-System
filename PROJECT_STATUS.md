@@ -24,20 +24,26 @@
 - Production readiness gate: implemented
 - Production secret-store abstraction: implemented
 - Production health-check service: implemented
+- Provider transport layer for Meta/TikTok/Shopify: implemented
+- Approved command → platform execution bridge: implemented
+- Platform response → canonical metrics ingestion bridge: implemented
 
 ## Autonomous optimization loop
 Approved creative → Platform Execution → Scheduled Ingestion → PostgreSQL Durable Jobs → Production Worker → Canonical Metrics + Purchases → Attribution → Persistent Metrics → Learning Signals → Cross-Campaign Patterns → Strategy Decisions → Memory → Experiment/Budget Optimization → Better Creative
 
+## Live platform gateway
+ATLAS now has a provider-neutral transport boundary for Meta, TikTok and Shopify. Each transport obtains an access token through an injected token provider, retries authentication once after a 401 via token refresh, rejects rate-limit/server-error responses for the caller's retry policy, and normalizes provider requests through a common HTTP transport. An execution bridge enforces an approval verifier before sending commands to a platform. A metrics ingestion bridge converts provider responses into canonical metric records and persists them through an injected sink.
+
 ## Production security/operations foundation
-ATLAS now exposes a provider-backed secret-store boundary so production secret managers can be injected without coupling application code to a vendor. A read-only environment provider is included for local/development use. ATLAS also has a health-check service that aggregates dependency checks into a single readiness/health report and fails closed when a check throws.
+ATLAS exposes a provider-backed secret-store boundary, a read-only environment provider for local/development use, health checks, readiness evaluation, scheduling and observability interfaces. Production secrets, infrastructure and monitoring remain deployment concerns rather than hard-coded vendor dependencies.
 
 ## Current status
-The core application architecture and production boundaries are substantially implemented. The runtime is connected to a production-oriented PostgreSQL job store and executable worker composition. Experiment-to-learning integration is wired, deployment readiness can be evaluated explicitly, and the first production security/operations abstractions are now in place.
+The core application architecture and production boundaries are substantially implemented. The runtime is connected to a production-oriented PostgreSQL job store and executable worker composition. Experiment-to-learning integration is wired, deployment readiness can be evaluated explicitly, provider transport/execution/metrics bridges are now connected at the software boundary, and production security/operations abstractions are in place.
 
 ## What remains before production autonomy
 - Configure a real PostgreSQL connection pool/client and run migrations in the target deployment.
 - Connect a real secrets manager and real Meta/TikTok/Shopify credentials/OAuth.
-- Provider-specific transport/publishing configuration and live endpoint validation.
+- Validate provider-specific API versions, scopes, payloads, publishing operations and live endpoint behavior against authorized test accounts.
 - Production scheduler/worker deployment, monitoring, backups and alerting.
 - Full end-to-end tests against authorized test accounts/sandboxes where available.
 - Final tenant-isolation/security review and human approval/policy configuration.
