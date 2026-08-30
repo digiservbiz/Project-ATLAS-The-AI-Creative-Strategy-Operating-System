@@ -1,0 +1,5 @@
+export type IntelligenceEntityType="strategic_state"|"decision"|"hypothesis"|"experiment"|"learning"|"creative_dna"|"audience";
+export interface PersistenceEnvelope<T=unknown>{id:string;businessId:string;entityType:IntelligenceEntityType;version:number;data:T;evidenceIds:string[];createdAt:string;updatedAt:string;}
+export interface IntelligenceRepository{get<T>(businessId:string,entityType:IntelligenceEntityType,id:string):Promise<PersistenceEnvelope<T>|null>;put<T>(record:PersistenceEnvelope<T>):Promise<void>;list<T>(businessId:string,entityType:IntelligenceEntityType):Promise<PersistenceEnvelope<T>[]>;}
+export function assertBusinessScope(record:PersistenceEnvelope,businessId:string):void{if(record.businessId!==businessId)throw new Error("Persistence scope violation: record belongs to a different business");}
+export function createEnvelope<T>(input:Omit<PersistenceEnvelope<T>,"version"|"createdAt"|"updatedAt">,now=new Date().toISOString()):PersistenceEnvelope<T>{if(!input.businessId.trim())throw new Error("businessId is required");if(!input.id.trim())throw new Error("id is required");return {...input,version:1,createdAt:now,updatedAt:now};}
