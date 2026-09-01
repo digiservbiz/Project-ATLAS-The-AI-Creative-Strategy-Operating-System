@@ -21,3 +21,4 @@ export * from "./persistent-intelligence-service";
 export * from "./persistence-contract";
 export * from "./in-memory-repository";
 export * from "./postgres-intelligence-repository";
+export * from "./semantic-intelligence-projector";
