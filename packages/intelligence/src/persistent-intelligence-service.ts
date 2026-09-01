@@ -5,9 +5,13 @@ import { applyLearning, refreshNextActions } from "./strategic-learning-integrat
 import { buildIntelligenceSnapshot } from "./intelligence-hub";
 import type { IntelligenceRepository, PersistenceEnvelope } from "./persistence-contract";
 import { createStrategicState, type StrategicState } from "./strategic-state";
+import type { SemanticIntelligenceService } from "@atlas/semantic-intelligence";
+import { projectIntelligenceToSemantic } from "./semantic-intelligence-projector";
 
 export interface PersistentIntelligenceServiceOptions {
   repository: IntelligenceRepository;
+  semanticService?: SemanticIntelligenceService;
+  semanticScope?: { organizationId: string; projectId: string };
 }
 
 const stateId = (businessId: string) => `strategic-state:${businessId}`;
@@ -40,6 +44,7 @@ export class PersistentIntelligenceService {
       updatedAt: now,
     };
     await this.options.repository.put(record);
+    await this.project(record);
     return record;
   }
 
@@ -57,6 +62,7 @@ export class PersistentIntelligenceService {
       updatedAt: now,
     };
     await this.options.repository.put(record);
+    await this.project(record);
     return record;
   }
 
@@ -71,5 +77,15 @@ export class PersistentIntelligenceService {
   async loadSnapshot(model: BusinessIntelligenceModel, objective?: string): Promise<IntelligenceSnapshot> {
     const state = await this.loadStrategicState(model, objective);
     return buildIntelligenceSnapshot(model, state);
+  }
+
+  private async project(record: PersistenceEnvelope): Promise<void> {
+    const { semanticService, semanticScope } = this.options;
+    if (!semanticService || !semanticScope) return;
+    await projectIntelligenceToSemantic(semanticService, record, {
+      ...semanticScope,
+      sourceId: record.id,
+      businessId: record.businessId,
+    });
   }
 }
