@@ -1,20 +1,10 @@
 {
   "name": "@atlas/semantic-intelligence",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
-  "exports": {
-    ".": "./src/index.ts"
-  },
-  "scripts": {
-    "build": "tsc",
-    "lint": "tsc --noEmit",
-    "typecheck": "tsc --noEmit"
-  },
-  "dependencies": {
-    "@atlas/contracts": "workspace:*"
-  },
-  "devDependencies": {
-    "typescript": "^5.9.2"
-  }
+  "exports": { ".": "./src/index.ts" },
+  "scripts": { "build": "tsc", "lint": "tsc --noEmit", "typecheck": "tsc --noEmit" },
+  "dependencies": { "@atlas/contracts": "workspace:*", "@atlas/database": "workspace:*" },
+  "devDependencies": { "@types/node": "^24.3.0", "typescript": "^5.9.2" }
 }
