@@ -1,12 +1,24 @@
 import { AtlasOrchestrator, type AgentSkill } from "@atlas/orchestrator";
 import { ProductionAtlasRuntime, type RuntimeJobQueue, type RuntimeStore } from "@atlas/runtime";
+import { IntelligenceAwareOrchestrator, type WorkflowSkillMap } from "./intelligence-aware-orchestrator";
 import { ProductionWorkflowWorker } from "./production-worker";
 import type { JobStore } from "./durable-job-queue";
 
 export interface ProductionRuntimeComponents { runtime: ProductionAtlasRuntime; worker: ProductionWorkflowWorker; }
 
-export function createProductionRuntime(components: { runtimeStore: RuntimeStore; jobStore: JobStore; queue: RuntimeJobQueue; skills: AgentSkill[] }): ProductionRuntimeComponents {
-  const orchestrator = new AtlasOrchestrator(components.skills);
+export interface ProductionRuntimeOptions { enabled: boolean; workflowSkillMap?: WorkflowSkillMap; }
+
+export function createProductionRuntime(components: {
+  runtimeStore: RuntimeStore;
+  jobStore: JobStore;
+  queue: RuntimeJobQueue;
+  skills: AgentSkill[];
+  intelligence?: ProductionRuntimeOptions;
+}): ProductionRuntimeComponents {
+  const intelligence = components.intelligence;
+  const orchestrator = intelligence?.enabled
+    ? new IntelligenceAwareOrchestrator(components.skills, intelligence.workflowSkillMap)
+    : new AtlasOrchestrator(components.skills);
   const runtime = new ProductionAtlasRuntime(components.runtimeStore, components.queue, orchestrator);
   const worker = new ProductionWorkflowWorker(components.jobStore, runtime);
   return { runtime, worker };
