@@ -6,7 +6,7 @@
 
 ## Current status
 
-ATLAS is in **integration and production-hardening**. The intelligence layer is implemented as bounded services and is now connected to a real PostgreSQL persistence adapter. The architecture remains `Intelligence + Memory + Orchestration + Specialized Agents + Tools` rather than an uncontrolled collection of autonomous agents.
+ATLAS is in **integration and production-hardening**. The intelligence layer is implemented as bounded services, durable PostgreSQL persistence is wired, and persisted Strategic State/Learning records can now be projected into the existing SIEL/pgvector semantic layer. The architecture remains `Intelligence + Memory + Orchestration + Specialized Agents + Tools` rather than an uncontrolled collection of autonomous agents.
 
 ## Implemented intelligence layer
 
@@ -32,29 +32,30 @@ ATLAS is in **integration and production-hardening**. The intelligence layer is 
 - Intelligence Hub → Orchestrator workflow-selection adapter
 - Persistent Intelligence Service
 - In-memory persistence repository
-- PostgreSQL intelligence persistence repository using the existing `@atlas/database` package and `atlas_intelligence_records` table
-- Strict TypeScript workspace package for `@atlas/intelligence`
+- PostgreSQL intelligence persistence repository
+- SIEL/pgvector intelligence projection for persisted Strategic State and Learning
 
-## Persistence architecture
+## Persistence + semantic architecture
 
-`PersistentIntelligenceService → IntelligenceRepository → PostgresIntelligenceRepository → @atlas/database → atlas_intelligence_records`
+`PersistentIntelligenceService → IntelligenceRepository → PostgresIntelligenceRepository → @atlas/database → PostgreSQL`
 
-The existing persistence migration is reused; no duplicate intelligence table was introduced. PostgreSQL writes use optimistic version sequencing (`newVersion = currentVersion + 1`) and reject stale writes. Reads and lists are explicitly scoped by business, organization and project. Evidence IDs, timestamps and JSON intelligence payloads are retained.
+`PersistentIntelligenceService → IntelligenceSemanticProjector → SemanticIntelligenceService → PgVectorSemanticRepository → semantic_objects + semantic_embeddings`
+
+The existing persistence and semantic migrations are reused. No duplicate intelligence or vector tables were introduced. Intelligence records remain scoped by business, organization and project. Evidence IDs, versions, timestamps and JSON payloads are retained. Semantic projections preserve business/entity/version metadata and evidence provenance.
 
 ## Integration loop
 
-`Business Intelligence → Strategic State → Evidence → Hypothesis → Experiment → Outcome → Learning → Intelligence Hub → Next Best Action → Orchestrator → bounded workflow → Performance → Learning`
+`Business Intelligence → Strategic State → Evidence → Hypothesis → Experiment → Outcome → Learning → SIEL → Intelligence Hub → Next Best Action → Orchestrator → bounded workflow → Performance → Learning`
 
 ## Production-hardening checklist
 
 1. Connect `@atlas/intelligence` to the production runtime/orchestrator factory and dependency injection.
-2. Connect Creative DNA and outcome-weighted retrieval to the existing SIEL/pgvector implementation where the semantic repository is defined.
-3. Persist all intelligence entity types through the same repository boundary.
-4. Connect canonical performance metrics to Creative DNA and learning records.
-5. Expand end-to-end tests across research → strategy → execution → performance → learning.
-6. Complete platform-specific strategy adapters.
-7. Complete agency/multi-client tenant isolation and authorization checks across intelligence state and memory.
-8. Validate PostgreSQL migrations, secrets, OAuth/provider scopes, scheduling, observability and deployment with real target-environment credentials.
+2. Persist all intelligence entity types through the same repository boundary.
+3. Connect canonical performance metrics to Creative DNA and learning records.
+4. Expand end-to-end tests across research → strategy → execution → performance → learning.
+5. Complete platform-specific strategy adapters.
+6. Complete agency/multi-client tenant isolation and authorization checks across intelligence state and memory.
+7. Validate PostgreSQL migrations, secrets, OAuth/provider scopes, scheduling, observability and deployment with real target-environment credentials.
 
 ## Architectural rule
 
