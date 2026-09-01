@@ -4,7 +4,7 @@ import { IntelligenceAwareOrchestrator } from "./intelligence-aware-orchestrator
 
 const intelligenceSnapshot = {
   business: { business: { id: "business-1" } },
-  state: { businessId: "business-1", projectId: "project-1", confidence: 0.9 },
+  state: { businessId: "business-1", confidence: 0.9 },
   nextBestActions: [{
     id: "nba-1", type: "test_angle", reason: "Angle gap detected", priority: 90,
     confidence: 0.88, requiredApproval: false,
@@ -25,21 +25,20 @@ describe("IntelligenceAwareOrchestrator", () => {
       organizationId: "org-1", projectId: "project-1", objective: "improve creative",
       inputs: {}, memory: { intelligenceSnapshot },
     };
-    const steps: WorkflowStep[] = [{ id: "first", skillId: "research" }];
-    const run = await orchestrator.run("run-1", context, steps);
+    const run = await orchestrator.run("run-1", context, [{ id: "first", skillId: "research" }]);
     expect(executed).toBe("creative-test");
     expect(run.steps.first).toBe("completed");
     expect(run.outputs.first.output.selectedBy).toBe("intelligence");
   });
 
-  it("rejects a snapshot from another project", async () => {
+  it("rejects a snapshot whose business and strategic state disagree", async () => {
     const skill: AgentSkill = { skillId: "research", async execute() { return { output: {} }; } };
     const orchestrator = new IntelligenceAwareOrchestrator([skill], { research: "research" });
     const context: AgentContext = {
-      organizationId: "org-1", projectId: "project-2", objective: "test",
-      inputs: {}, memory: { intelligenceSnapshot },
+      organizationId: "org-1", projectId: "project-1", objective: "test", inputs: {},
+      memory: { intelligenceSnapshot: { ...intelligenceSnapshot, state: { businessId: "other-business" } } },
     };
     await expect(orchestrator.run("run-2", context, [{ id: "first", skillId: "research" }]))
-      .rejects.toThrow("project scope mismatch");
+      .rejects.toThrow("business/state scope mismatch");
   });
 });
