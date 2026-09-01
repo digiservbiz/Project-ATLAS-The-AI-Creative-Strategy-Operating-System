@@ -6,7 +6,7 @@
 
 ## Current status
 
-ATLAS is in **integration and production-hardening**. The intelligence layer is implemented as bounded services, durable PostgreSQL persistence is wired, and persisted Strategic State/Learning records can now be projected into the existing SIEL/pgvector semantic layer. The architecture remains `Intelligence + Memory + Orchestration + Specialized Agents + Tools` rather than an uncontrolled collection of autonomous agents.
+ATLAS is in **integration and production-hardening**. The intelligence layer is implemented as bounded services, durable PostgreSQL persistence is wired, persisted Strategic State/Learning records can be projected into SIEL/pgvector, and production workflow execution can now consume an intelligence-selected next action through the orchestrator factory.
 
 ## Implemented intelligence layer
 
@@ -34,14 +34,22 @@ ATLAS is in **integration and production-hardening**. The intelligence layer is 
 - In-memory persistence repository
 - PostgreSQL intelligence persistence repository
 - SIEL/pgvector intelligence projection for persisted Strategic State and Learning
+- Intelligence-aware production orchestrator bridge
+- Production runtime factory integration for intelligence-driven workflow selection
 
 ## Persistence + semantic architecture
 
 `PersistentIntelligenceService → IntelligenceRepository → PostgresIntelligenceRepository → @atlas/database → PostgreSQL`
 
-`PersistentIntelligenceService → IntelligenceSemanticProjector → SemanticIntelligenceService → PgVectorSemanticRepository → semantic_objects + semantic_embeddings`
+`PersistentIntelligenceService → semantic-intelligence-projector → SemanticIntelligenceService → PgVectorSemanticRepository → semantic_objects + semantic_embeddings`
 
 The existing persistence and semantic migrations are reused. No duplicate intelligence or vector tables were introduced. Intelligence records remain scoped by business, organization and project. Evidence IDs, versions, timestamps and JSON payloads are retained. Semantic projections preserve business/entity/version metadata and evidence provenance.
+
+## Runtime integration
+
+`IntelligenceSnapshot → selectNextWorkflow → IntelligenceAwareOrchestrator → mapped AgentSkill → AtlasOrchestrator → ProductionAtlasRuntime → durable queue/worker`
+
+The bridge is opt-in through the production runtime factory. Existing workflows remain unchanged when intelligence mode is disabled or no intelligence snapshot is present. Scope validation prevents a snapshot whose business model and strategic state disagree from reaching execution.
 
 ## Integration loop
 
@@ -49,13 +57,13 @@ The existing persistence and semantic migrations are reused. No duplicate intell
 
 ## Production-hardening checklist
 
-1. Connect `@atlas/intelligence` to the production runtime/orchestrator factory and dependency injection.
-2. Persist all intelligence entity types through the same repository boundary.
-3. Connect canonical performance metrics to Creative DNA and learning records.
-4. Expand end-to-end tests across research → strategy → execution → performance → learning.
-5. Complete platform-specific strategy adapters.
-6. Complete agency/multi-client tenant isolation and authorization checks across intelligence state and memory.
-7. Validate PostgreSQL migrations, secrets, OAuth/provider scopes, scheduling, observability and deployment with real target-environment credentials.
+1. Persist all intelligence entity types through the same repository boundary.
+2. Connect canonical performance metrics to Creative DNA and learning records.
+3. Expand end-to-end tests across research → strategy → execution → performance → learning.
+4. Complete platform-specific strategy adapters.
+5. Complete agency/multi-client tenant isolation and authorization checks across intelligence state and memory.
+6. Validate PostgreSQL migrations, secrets, OAuth/provider scopes, scheduling, observability and deployment with real target-environment credentials.
+7. Add production dependency-injection wiring for the real business-model/snapshot loader and workflow skill map in the API/application composition root.
 
 ## Architectural rule
 
