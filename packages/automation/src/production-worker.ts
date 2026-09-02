@@ -1,11 +1,16 @@
 import type { AgentContext, WorkflowStep } from "@atlas/orchestrator";
 import { ProductionAtlasRuntime } from "@atlas/runtime";
 import type { Job, JobStore } from "./durable-job-queue";
+import type { ProductionIntelligenceContextLoader } from "./intelligence-context-loader";
 
 export interface WorkflowJobPayload { runtimeId: string; runId: string; context: AgentContext; steps: WorkflowStep[]; }
 
 export class ProductionWorkflowWorker {
-  constructor(private readonly store: JobStore, private readonly runtime: ProductionAtlasRuntime) {}
+  constructor(
+    private readonly store: JobStore,
+    private readonly runtime: ProductionAtlasRuntime,
+    private readonly intelligenceContextLoader?: ProductionIntelligenceContextLoader,
+  ) {}
 
   async tick(now = Date.now()): Promise<boolean> {
     const job = await this.store.claim(now);
@@ -13,7 +18,10 @@ export class ProductionWorkflowWorker {
     try {
       if (job.type !== "workflow.run") throw new Error(`Unsupported production job type: ${job.type}`);
       const payload = job.payload as WorkflowJobPayload;
-      await this.runtime.execute(payload.runtimeId, payload.runId, payload.context, payload.steps);
+      const context = this.intelligenceContextLoader
+        ? await this.intelligenceContextLoader.enrich(payload.context)
+        : payload.context;
+      await this.runtime.execute(payload.runtimeId, payload.runId, context, payload.steps);
       await this.store.complete(job.id);
     } catch (error) {
       await this.store.fail(job.id, error instanceof Error ? error.message : String(error), Date.now() + this.retryDelay(job.attempts));
