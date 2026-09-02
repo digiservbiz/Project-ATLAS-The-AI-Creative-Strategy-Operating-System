@@ -26,7 +26,7 @@ describe("PostgresBusinessModelLoader", () => {
       competitors: [{ id: "comp-1", businessId: "business-1" }],
       campaigns: [{ id: "campaign-1", businessId: "business-1", offerId: "product-1", audienceIds: ["aud-1"] }],
     });
-    expect(query).toHaveBeenNthCalledWith(1, expect.any(String), ["org-1", "project-1"]);
+    expect(query).toHaveBeenNthCalledWith(1, expect.any(String), ["project-1", "org-1", "project-1"]);
     expect(query).toHaveBeenNthCalledWith(2, expect.any(String), ["org-1", "project-1"]);
     expect(query).toHaveBeenNthCalledWith(3, expect.any(String), ["org-1", "project-1"]);
     expect(query).toHaveBeenNthCalledWith(4, expect.any(String), ["org-1", "project-1"]);
