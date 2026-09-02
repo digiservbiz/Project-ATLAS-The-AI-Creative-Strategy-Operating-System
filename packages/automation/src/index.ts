@@ -11,3 +11,4 @@ export * from "./intelligence-context-loader";
 export * from "./postgres-business-model-loader";
 export * from "./scoped-production-intelligence-context-loader";
 export * from "./performance-intelligence-ingestion";
+export * from "./meta-performance-adapter";
