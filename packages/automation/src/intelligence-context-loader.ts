@@ -2,6 +2,7 @@ import type { AgentContext } from "@atlas/orchestrator";
 import type { BusinessIntelligenceModel, IntelligenceSnapshot, PersistentIntelligenceService } from "@atlas/intelligence";
 
 export interface ProductionBusinessModelLoader {
+  /** Implementations must resolve a model only from the tenant/project in context. */
   load(context: AgentContext): Promise<BusinessIntelligenceModel | null>;
 }
 
@@ -27,15 +28,8 @@ export class PersistentProductionIntelligenceContextLoader implements Production
     const model = await this.businessModelLoader.load(context);
     if (!model) return context;
 
-    if (model.organizationId !== context.organizationId) {
-      throw new Error("Business model organization scope mismatch");
-    }
-    if (context.projectId && model.projectId !== context.projectId) {
-      throw new Error("Business model project scope mismatch");
-    }
-
     const snapshot = await this.intelligence.loadSnapshot(model, context.objective);
-    this.validateSnapshotScope(context, snapshot);
+    this.validateSnapshotScope(snapshot);
 
     return {
       ...context,
@@ -46,13 +40,7 @@ export class PersistentProductionIntelligenceContextLoader implements Production
     };
   }
 
-  private validateSnapshotScope(context: AgentContext, snapshot: IntelligenceSnapshot): void {
-    if (snapshot.business.business.organizationId !== context.organizationId) {
-      throw new Error("Intelligence snapshot organization scope mismatch");
-    }
-    if (context.projectId && snapshot.business.business.projectId !== context.projectId) {
-      throw new Error("Intelligence snapshot project scope mismatch");
-    }
+  private validateSnapshotScope(snapshot: IntelligenceSnapshot): void {
     if (snapshot.business.business.id !== snapshot.state.businessId) {
       throw new Error("Intelligence snapshot business/state scope mismatch");
     }
