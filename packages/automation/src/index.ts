@@ -7,3 +7,4 @@ export * from "./worker-runtime";
 export * from "./production-runtime-factory";
 export * from "./production-worker";
 export * from "./intelligence-aware-orchestrator";
+export * from "./intelligence-context-loader";
