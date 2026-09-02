@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import type { CreativeDNA, PersistentIntelligenceService } from "@atlas/intelligence";
+import type { CreativeDNA, IntelligenceSnapshot, PersistentIntelligenceService } from "@atlas/intelligence";
 import { PerformanceIntelligenceIngestion } from "./performance-intelligence-ingestion";
 
 const dna: CreativeDNA = {
@@ -16,6 +16,12 @@ const dna: CreativeDNA = {
   evidenceIds: [],
 };
 
+const snapshot = {
+  business: { business: { id: "business-1" } },
+  state: { businessId: "business-1" },
+  nextBestActions: [],
+} as unknown as IntelligenceSnapshot;
+
 const input = {
   creativeId: "creative-1",
   businessId: "business-1",
@@ -30,42 +36,55 @@ const input = {
 };
 
 describe("PerformanceIntelligenceIngestion", () => {
-  it("persists Creative DNA and creates learning for a strong outcome", async () => {
-    const put = vi.fn(async () => undefined);
-    const recordLearning = vi.fn(async () => undefined);
-    const service = { recordLearning } as unknown as PersistentIntelligenceService;
-    const ingestion = new PerformanceIntelligenceIngestion({
-      get: async () => dna,
-      put,
-    }, service);
+  it("persists Creative DNA and feeds strong performance into learning", async () => {
+    const recordCreativeDNA = vi.fn(async () => undefined);
+    const ingestLearning = vi.fn(async (_snapshot: IntelligenceSnapshot, learning: unknown) => ({
+      ...snapshot,
+      state: { ...snapshot.state, knownLearnings: [learning] },
+    }));
+    const service = { recordCreativeDNA, ingestLearning } as unknown as PersistentIntelligenceService;
+    const ingestion = new PerformanceIntelligenceIngestion({ get: async () => dna }, service);
 
-    const result = await ingestion.process(input);
+    const result = await ingestion.process(input, snapshot);
 
     expect(result.performance.roas).toBe(4);
     expect(result.performance.ctr).toBe(0.06);
     expect(result.learning?.status).toBe("supported");
-    expect(put).toHaveBeenCalledWith(expect.objectContaining({ id: dna.id, performance: expect.any(Object) }));
-    expect(recordLearning).toHaveBeenCalledTimes(1);
+    expect(recordCreativeDNA).toHaveBeenCalledWith(expect.objectContaining({ id: dna.id, performance: expect.any(Object) }));
+    expect(ingestLearning).toHaveBeenCalledTimes(1);
+    expect(result.snapshot.state.knownLearnings).toHaveLength(1);
   });
 
-  it("does not learn from insufficient data", async () => {
-    const recordLearning = vi.fn(async () => undefined);
-    const ingestion = new PerformanceIntelligenceIngestion({
-      get: async () => dna,
-      put: async () => undefined,
-    }, { recordLearning } as unknown as PersistentIntelligenceService);
+  it("updates Creative DNA but does not learn from insufficient data", async () => {
+    const recordCreativeDNA = vi.fn(async () => undefined);
+    const ingestLearning = vi.fn(async () => snapshot);
+    const ingestion = new PerformanceIntelligenceIngestion({ get: async () => dna }, {
+      recordCreativeDNA,
+      ingestLearning,
+    } as unknown as PersistentIntelligenceService);
 
-    const result = await ingestion.process({ ...input, impressions: 20, clicks: 2, conversions: 0 });
+    const result = await ingestion.process({ ...input, impressions: 20, clicks: 2, conversions: 0 }, snapshot);
+
     expect(result.learning).toBeNull();
-    expect(recordLearning).not.toHaveBeenCalled();
+    expect(recordCreativeDNA).toHaveBeenCalledTimes(1);
+    expect(ingestLearning).not.toHaveBeenCalled();
+    expect(result.snapshot).toBe(snapshot);
+  });
+
+  it("rejects performance from another business before reading Creative DNA", async () => {
+    const get = vi.fn(async () => dna);
+    const ingestion = new PerformanceIntelligenceIngestion({ get }, {} as PersistentIntelligenceService);
+
+    await expect(ingestion.process({ ...input, businessId: "business-2" }, snapshot))
+      .rejects.toThrow("different business");
+    expect(get).not.toHaveBeenCalled();
   });
 
   it("rejects cross-business Creative DNA", async () => {
     const ingestion = new PerformanceIntelligenceIngestion({
       get: async () => ({ ...dna, businessId: "business-2" }),
-      put: async () => undefined,
-    }, { recordLearning: async () => undefined } as unknown as PersistentIntelligenceService);
+    }, {} as PersistentIntelligenceService);
 
-    await expect(ingestion.process(input)).rejects.toThrow("business scope mismatch");
+    await expect(ingestion.process(input, snapshot)).rejects.toThrow("business scope mismatch");
   });
 });
