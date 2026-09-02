@@ -6,6 +6,7 @@ export * from "./creative-dna";
 export * from "./creative-hypothesis-engine";
 export * from "./creative-experimentation";
 export * from "./learning-loop";
+export * from "./performance-learning-engine";
 export * from "./strategic-learning-integration";
 export * from "./outcome-weighted-retrieval";
 export * from "./angle-gap-detection";
