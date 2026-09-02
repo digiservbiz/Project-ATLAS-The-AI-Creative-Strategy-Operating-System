@@ -1,27 +1,32 @@
-import type { CreativeDNA, LearningRecord, PersistentIntelligenceService } from "@atlas/intelligence";
+import type {
+  CreativeDNA,
+  IntelligenceSnapshot,
+  LearningRecord,
+  PersistentIntelligenceService,
+  PlatformPerformanceInput,
+  PerformanceLearningThresholds,
+} from "@atlas/intelligence";
 import {
   normalizePerformance,
   applyPerformanceToCreativeDNA,
   createPerformanceLearning,
-  type PlatformPerformanceInput,
-  type PerformanceLearningThresholds,
 } from "@atlas/intelligence";
 
 export interface CreativeDNARepository {
   get(businessId: string, creativeId: string): Promise<CreativeDNA | null>;
-  put(dna: CreativeDNA): Promise<void>;
 }
 
 export interface PerformanceIntelligenceIngestionResult {
   performance: ReturnType<typeof normalizePerformance>;
   creative: CreativeDNA;
   learning: LearningRecord | null;
+  snapshot: IntelligenceSnapshot;
 }
 
 /**
- * Production boundary for turning platform performance into durable ATLAS intelligence.
- * The adapter deliberately knows nothing about Meta/TikTok APIs; platform adapters only
- * need to map their response into PlatformPerformanceInput.
+ * Production boundary for turning provider performance into durable ATLAS intelligence.
+ * Platform adapters map provider responses into PlatformPerformanceInput; this service
+ * owns Creative DNA persistence and feeds qualifying outcomes into the learning loop.
  */
 export class PerformanceIntelligenceIngestion {
   constructor(
@@ -30,18 +35,27 @@ export class PerformanceIntelligenceIngestion {
     private readonly thresholds: Partial<PerformanceLearningThresholds> = {},
   ) {}
 
-  async process(input: PlatformPerformanceInput): Promise<PerformanceIntelligenceIngestionResult> {
+  async process(
+    input: PlatformPerformanceInput,
+    snapshot: IntelligenceSnapshot,
+  ): Promise<PerformanceIntelligenceIngestionResult> {
     const performance = normalizePerformance(input);
+    if (snapshot.state.businessId !== performance.businessId) {
+      throw new Error("Performance belongs to a different business");
+    }
+
     const dna = await this.creatives.get(performance.businessId, performance.creativeId);
     if (!dna) throw new Error(`Creative DNA not found: ${performance.creativeId}`);
     if (dna.businessId !== performance.businessId) throw new Error("Creative performance business scope mismatch");
 
     const creative = applyPerformanceToCreativeDNA(dna, performance);
-    await this.creatives.put(creative);
+    await this.intelligence.recordCreativeDNA(creative);
 
     const learning = createPerformanceLearning(creative, performance, this.thresholds);
-    if (learning) await this.intelligence.recordLearning(learning);
+    const updatedSnapshot = learning
+      ? await this.intelligence.ingestLearning(snapshot, learning)
+      : snapshot;
 
-    return { performance, creative, learning };
+    return { performance, creative, learning, snapshot: updatedSnapshot };
   }
 }
