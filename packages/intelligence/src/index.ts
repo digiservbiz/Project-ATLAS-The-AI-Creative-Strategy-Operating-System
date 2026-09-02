@@ -18,6 +18,7 @@ export * from "./market-opportunity-detection";
 export * from "./intelligence-hub";
 export * from "./orchestrator-intelligence-adapter";
 export * from "./persistent-intelligence-service";
+export * from "./scoped-persistent-intelligence";
 export * from "./persistence-contract";
 export * from "./in-memory-repository";
 export * from "./postgres-intelligence-repository";
