@@ -1,6 +1,7 @@
 import type { BusinessIntelligenceModel } from "./business-intelligence-model";
 import type { IntelligenceSnapshot } from "./intelligence-hub";
 import type { LearningRecord } from "./learning-loop";
+import type { CreativeDNA } from "./creative-dna";
 import { PersistentIntelligenceService } from "./persistent-intelligence-service";
 import type { IntelligenceRepository } from "./persistence-contract";
 import type { SemanticIntelligenceService } from "@atlas/semantic-intelligence";
@@ -46,10 +47,13 @@ export class ScopedPersistentIntelligenceService {
     return this.forScope(scope).recordLearning(learning);
   }
 
+  async recordCreativeDNA(scope: IntelligenceTenantScope, dna: CreativeDNA) {
+    this.assertBusinessId(scope, dna.businessId);
+    return this.forScope(scope).recordCreativeDNA(dna);
+  }
+
   private assertBusinessId(scope: IntelligenceTenantScope, businessId: string): void {
     if (!businessId.trim()) throw new Error("businessId is required");
-    // Business IDs are resolved by the scoped business-model loader. This check
-    // ensures an empty/invalid scope can never reach persistence.
     if (!scope.organizationId.trim() || !scope.projectId.trim()) {
       throw new Error("Invalid intelligence tenant scope");
     }
