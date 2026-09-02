@@ -7,6 +7,7 @@ import type { IntelligenceRepository, PersistenceEnvelope } from "./persistence-
 import { createStrategicState, type StrategicState } from "./strategic-state";
 import type { SemanticIntelligenceService } from "@atlas/semantic-intelligence";
 import { projectIntelligenceToSemantic } from "./semantic-intelligence-projector";
+import type { CreativeDNA } from "./creative-dna";
 
 export interface PersistentIntelligenceServiceOptions {
   repository: IntelligenceRepository;
@@ -16,6 +17,7 @@ export interface PersistentIntelligenceServiceOptions {
 
 const stateId = (businessId: string) => `strategic-state:${businessId}`;
 const learningId = (learning: LearningRecord) => learning.id;
+const creativeDnaId = (dna: CreativeDNA) => dna.id;
 
 export class PersistentIntelligenceService {
   constructor(private readonly options: PersistentIntelligenceServiceOptions) {}
@@ -59,6 +61,27 @@ export class PersistentIntelligenceService {
       data: structuredClone(learning),
       evidenceIds: [...learning.evidenceIds],
       createdAt: existing?.createdAt ?? learning.createdAt ?? now,
+      updatedAt: now,
+    };
+    await this.options.repository.put(record);
+    await this.project(record);
+    return record;
+  }
+
+  async recordCreativeDNA(dna: CreativeDNA): Promise<PersistenceEnvelope<CreativeDNA>> {
+    if (!dna.id.trim()) throw new Error("Creative DNA ID is required");
+    if (!dna.businessId.trim()) throw new Error("Creative DNA business ID is required");
+
+    const existing = await this.options.repository.get<CreativeDNA>(dna.businessId, "creative_dna", creativeDnaId(dna));
+    const now = new Date().toISOString();
+    const record: PersistenceEnvelope<CreativeDNA> = {
+      id: creativeDnaId(dna),
+      businessId: dna.businessId,
+      entityType: "creative_dna",
+      version: existing ? existing.version + 1 : 1,
+      data: structuredClone(dna),
+      evidenceIds: [...dna.evidenceIds],
+      createdAt: existing?.createdAt ?? dna.createdAt ?? now,
       updatedAt: now,
     };
     await this.options.repository.put(record);
