@@ -1,5 +1,5 @@
 import type { PlatformPerformanceInput } from "@atlas/intelligence";
-import type { MetaInsightsClient, MetaInsightsRequest, MetaAdsInsightsPage } from "./meta-insights-client";
+import type { MetaInsightsClient, MetaInsightsPage, MetaInsightsRequest } from "./meta-insights-client";
 import { mapMetaAdsInsightsBatch, type MetaAdsInsightsRow, type MetaPerformanceAdapterContext } from "./meta-performance-adapter";
 
 export interface MetaPerformanceSyncResult {
@@ -15,7 +15,7 @@ export class MetaPerformanceSync {
     request: MetaInsightsRequest,
     context: MetaPerformanceAdapterContext,
   ): Promise<MetaPerformanceSyncResult> {
-    const page = await this.client.fetch(request) as MetaAdsInsightsPage<MetaAdsInsightsRow>;
+    const page = await this.client.fetch(request) as MetaInsightsPage<MetaAdsInsightsRow>;
     const rows = page.data ?? [];
     return {
       rows,
