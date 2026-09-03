@@ -14,3 +14,4 @@ export * from "./performance-intelligence-ingestion";
 export * from "./meta-performance-adapter";
 export * from "./meta-insights-client";
 export * from "./meta-performance-sync";
+export * from "./meta-intelligence-sync";
