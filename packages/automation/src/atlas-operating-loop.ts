@@ -68,14 +68,15 @@ export class AtlasOperatingLoop {
       input.workflowSteps ?? [{ id: "strategy-execution", skillId: "atlas:execution" }],
     );
 
+    const awaitingApproval = Object.values(workflow.outputs).some((result) => result.requiresApproval === true);
     let performance: PerformanceIntelligenceIngestionResult | undefined;
     let nextSnapshot = input.snapshot;
     if (input.performance) {
       if (!this.dependencies.performanceIngestion) {
         throw new Error("Performance ingestion is required when performance data is supplied");
       }
-      if (workflow.status !== "completed") {
-        throw new Error("Performance cannot be ingested until the operating workflow completes");
+      if (workflow.status !== "completed" || awaitingApproval) {
+        throw new Error("Performance cannot be ingested until the operating workflow is approved and completes");
       }
       performance = await this.dependencies.performanceIngestion.process(input.performance, input.snapshot);
       nextSnapshot = performance.snapshot;
