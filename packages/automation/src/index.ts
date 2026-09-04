@@ -22,3 +22,4 @@ export * from "./tiktok-intelligence-sync";
 export * from "./shopify-admin-client";
 export * from "./shopify-catalog-sync";
 export * from "./atlas-operating-loop";
+export * from "./atlas-autonomous-loop";
