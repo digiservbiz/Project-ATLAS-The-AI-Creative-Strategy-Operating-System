@@ -1,0 +1,13 @@
+{
+  "name": "@atlas/orchestrator",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./src/index.ts" },
+  "scripts": {
+    "build": "tsc",
+    "test": "node --test",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": { "typescript": "^5.9.2" }
+}
