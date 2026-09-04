@@ -1,4 +1,4 @@
-import type { ProductPage } from "@atlas/creative-intelligence";
+import type { ProductPage } from "../../creative-intelligence/src/product-url";
 import type { ShopifyAdminClient } from "./shopify-admin-client";
 
 export interface ShopifyProductNode {
@@ -81,8 +81,9 @@ export class ShopifyCatalogSync {
       variables: { first, after: request.after ?? null },
     });
 
+    const shopDomain = request.shopDomain.replace(/^https?:\/\//i, "").replace(/\/$/, "");
     return {
-      products: page.products.nodes.map((product) => toProductPage(product, request.shopDomain.replace(/^https?:\/\//i, "").replace(/\/$/, ""))),
+      products: page.products.nodes.map((product) => toProductPage(product, shopDomain)),
       hasNextPage: page.products.pageInfo.hasNextPage,
       endCursor: page.products.pageInfo.endCursor,
     };
