@@ -31,6 +31,37 @@ describe("IntelligenceAwareOrchestrator", () => {
     expect(run.outputs.first.output.selectedBy).toBe("intelligence");
   });
 
+  it("blocks execution when the intelligence decision requires approval", async () => {
+    let executed = false;
+    const risky: AgentSkill = {
+      skillId: "risky-action",
+      async execute() { executed = true; return { output: { shouldNotRun: true } }; },
+    };
+    const snapshot = {
+      ...intelligenceSnapshot,
+      nextBestActions: [{
+        id: "nba-approval", type: "adjust_budget", reason: "Scale winning campaign",
+        priority: 100, confidence: 0.97, requiredApproval: true,
+      }],
+    } as any;
+    const orchestrator = new IntelligenceAwareOrchestrator([risky], { analysis: "risky-action" });
+    const context: AgentContext = {
+      organizationId: "org-1", projectId: "project-1", objective: "scale",
+      inputs: {}, memory: { intelligenceSnapshot: snapshot },
+    };
+
+    const run = await orchestrator.run("run-approval", context, [{ id: "first", skillId: "risky-action" }]);
+
+    expect(executed).toBe(false);
+    expect(run.steps.first).toBe("skipped");
+    expect(run.outputs.first.requiresApproval).toBe(true);
+    expect(run.outputs.first.output).toMatchObject({
+      approvalRequired: true,
+      workflow: "analysis",
+      actionId: "nba-approval",
+    });
+  });
+
   it("rejects a snapshot whose business and strategic state disagree", async () => {
     const skill: AgentSkill = { skillId: "research", async execute() { return { output: {} }; } };
     const orchestrator = new IntelligenceAwareOrchestrator([skill], { research: "research" });
