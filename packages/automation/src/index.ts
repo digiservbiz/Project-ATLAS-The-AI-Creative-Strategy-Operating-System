@@ -19,3 +19,5 @@ export * from "./tiktok-performance-adapter";
 export * from "./tiktok-ads-client";
 export * from "./tiktok-performance-sync";
 export * from "./tiktok-intelligence-sync";
+export * from "./shopify-admin-client";
+export * from "./shopify-catalog-sync";
