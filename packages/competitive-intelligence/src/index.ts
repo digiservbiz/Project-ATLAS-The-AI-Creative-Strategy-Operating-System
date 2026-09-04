@@ -5,6 +5,8 @@ import type {
   CreativeSourceAdapter,
 } from "@atlas/contracts";
 
+export * from "./research-ingestion";
+
 export interface CreativeArtifactStore {
   upsert(artifact: CreativeArtifact): Promise<void>;
   findBySource(source: string, sourceId: string): Promise<CreativeArtifact | null>;
