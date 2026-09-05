@@ -11,5 +11,5 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": { "@atlas/contracts": "workspace:*" },
-  "devDependencies": { "typescript": "^5.9.2" }
+  "devDependencies": { "@types/node": "^24.3.0", "typescript": "^5.9.2" }
 }
