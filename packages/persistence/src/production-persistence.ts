@@ -1,5 +1,5 @@
-import { PostgresTransaction } from "./postgres-repository";
-import type { PostgresClient } from "./postgres-repository";
+import { PostgresTransaction } from "./postgres-repository.js";
+import type { PostgresClient } from "./postgres-repository.js";
 
 export class ProductionPersistence {
   readonly transaction: PostgresTransaction;
