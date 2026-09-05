@@ -57,6 +57,6 @@ export type AgentIdentity = z.infer<typeof agentIdentitySchema>;
 export type ExecutionEnvelope = z.infer<typeof executionEnvelopeSchema>;
 export type ArtifactEnvelope = z.infer<typeof artifactEnvelopeSchema>;
 
-export * from "./ccie";
-export * from "./intelligence";
-export * from "./production-readiness";
+export * from "./ccie.js";
+export * from "./intelligence.js";
+export * from "./production-readiness.js";
