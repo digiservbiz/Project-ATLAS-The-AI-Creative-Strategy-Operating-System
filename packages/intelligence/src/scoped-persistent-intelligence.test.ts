@@ -2,22 +2,37 @@ import { describe, expect, it, vi } from "vitest";
 import { ScopedPersistentIntelligenceService } from "./scoped-persistent-intelligence";
 
 const model = {
-  business: { id: "business-1", name: "Acme", model: "ecommerce", markets: [], channels: [], brandIds: [] },
-  brands: [], offers: [], audiences: [], competitors: [], campaigns: [],
+  business: {
+    id: "business-1",
+    name: "Acme",
+    model: "ecommerce" as const,
+    markets: [],
+    channels: [],
+    brandIds: [],
+  },
+  brands: [],
+  offers: [],
+  audiences: [],
+  competitors: [],
+  campaigns: [],
 };
 
 const learning = {
-  id: "learning-1", businessId: "business-1", evidenceIds: [], createdAt: new Date().toISOString(),
-  summary: "Test learning", confidence: 0.8, implications: [], source: "experiment",
+  id: "learning-1",
+  businessId: "business-1",
+  evidenceIds: [],
+  createdAt: new Date().toISOString(),
+  summary: "Test learning",
+  confidence: 0.8,
+  implications: [],
+  source: "experiment",
 } as any;
 
 describe("ScopedPersistentIntelligenceService", () => {
   it("creates an isolated persistence service for each scope", async () => {
     const first = { get: vi.fn().mockResolvedValue(null), put: vi.fn(), list: vi.fn() };
     const second = { get: vi.fn().mockResolvedValue(null), put: vi.fn(), list: vi.fn() };
-    const factory = vi.fn()
-      .mockReturnValueOnce(first)
-      .mockReturnValueOnce(second);
+    const factory = vi.fn().mockReturnValueOnce(first).mockReturnValueOnce(second);
     const service = new ScopedPersistentIntelligenceService({ repositoryFactory: factory });
 
     await service.loadSnapshot({ organizationId: "org-1", projectId: "project-1" }, model, "launch");
