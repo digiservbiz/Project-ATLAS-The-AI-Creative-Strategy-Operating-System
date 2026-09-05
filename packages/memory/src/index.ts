@@ -44,7 +44,7 @@ export class MemoryService {
     return rows.map((row) => ({
       id: row.id,
       organizationId: row.organization_id,
-      projectId: row.project_id ?? undefined,
+      ...(row.project_id === null ? {} : { projectId: row.project_id }),
       memoryType: row.memory_type,
       key: row.key,
       content: row.content,
