@@ -9,6 +9,10 @@
     "test": "node --test",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
+  "dependencies": {
+    "@atlas/contracts": "workspace:*",
+    "@atlas/semantic-intelligence": "workspace:*"
+  },
   "devDependencies": {
     "typescript": "^5.9.2",
     "vitest": "^2.1.5"
