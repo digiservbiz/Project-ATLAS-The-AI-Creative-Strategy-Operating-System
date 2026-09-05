@@ -1,6 +1,6 @@
-import type { AgentTask, AgentResult, AgentExecutor } from "./agent-contracts";
-import { routeNextAgents } from "./agent-contracts";
-import type { KnowledgeRuntime } from "./knowledge-runtime";
+import type { AgentTask, AgentResult, AgentExecutor } from "./agent-contracts.js";
+import { routeNextAgents } from "./agent-contracts.js";
+import type { KnowledgeRuntime } from "./knowledge-runtime.js";
 
 export interface AgentHandler { run(task: AgentTask, knowledge: string): Promise<Omit<AgentResult, "taskId" | "agentId" | "nextAgentIds">>; }
 export interface AgentResultStore { save(result: AgentResult): Promise<void>; }
