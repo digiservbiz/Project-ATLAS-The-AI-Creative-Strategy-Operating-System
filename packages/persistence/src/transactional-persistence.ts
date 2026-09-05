@@ -1,4 +1,4 @@
-import type { CampaignRecord, LearningMemoryRecord, MetricsRecord, PersistenceStore, StrategyDecisionRecord } from "./persistence-contracts";
+import type { CampaignRecord, LearningMemoryRecord, MetricsRecord, PersistenceStore, StrategyDecisionRecord } from "./persistence-contracts.js";
 
 export interface PersistenceTransaction {
   saveCampaign(record: CampaignRecord): Promise<void>;
