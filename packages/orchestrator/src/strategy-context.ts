@@ -1,8 +1,10 @@
 import type { AgentContext } from "./types";
-import type { SemanticMemoryHit, SemanticIndex } from "@atlas/performance-intelligence";
+import type { SemanticSearchResult } from "@atlas/contracts";
+import type { SemanticIntelligenceService } from "@atlas/semantic-intelligence";
 
 export interface StrategyContextRequest {
   organizationId: string;
+  projectId: string;
   platform?: "meta" | "tiktok" | "google";
   objective: string;
   audience?: string;
@@ -10,24 +12,49 @@ export interface StrategyContextRequest {
   limit?: number;
 }
 
+export interface StrategyEvidence {
+  key: string;
+  score: number;
+  object: SemanticSearchResult["object"];
+  provenance: Record<string, unknown>;
+}
+
 export interface StrategyContext {
   request: StrategyContextRequest;
-  historicalEvidence: SemanticMemoryHit[];
+  historicalEvidence: StrategyEvidence[];
 }
 
 export class StrategyContextBuilder {
-  constructor(private readonly semanticIndex: SemanticIndex) {}
+  constructor(private readonly semanticIndex: SemanticIntelligenceService) {}
 
-  async build(context: AgentContext, request: Omit<StrategyContextRequest, "organizationId">): Promise<StrategyContext> {
+  async build(
+    context: AgentContext,
+    request: Omit<StrategyContextRequest, "organizationId" | "projectId">
+  ): Promise<StrategyContext> {
     const organizationId = context.organizationId;
+    const projectId = context.projectId;
     if (!organizationId) throw new Error("organizationId is required");
-    const query = [request.objective, request.audience, request.product].filter(Boolean).join(" | ");
-    const historicalEvidence = await this.semanticIndex.search({
+    if (!projectId) throw new Error("projectId is required");
+    const query = [request.objective, request.audience, request.product]
+      .filter(Boolean)
+      .join(" | ");
+    const response = await this.semanticIndex.search({
       query,
       organizationId,
-      platform: request.platform,
-      limit: request.limit ?? 5,
+      projectId,
+      topK: request.limit ?? 5,
+      objectTypes: [],
+      filters: request.platform ? { platform: request.platform } : {},
     });
-    return { request: { ...request, organizationId }, historicalEvidence };
+    const historicalEvidence = response.results.map((hit) => ({
+      key: hit.object.id,
+      score: hit.similarity,
+      object: hit.object,
+      provenance: hit.provenance,
+    }));
+    return {
+      request: { ...request, organizationId, projectId },
+      historicalEvidence,
+    };
   }
 }
