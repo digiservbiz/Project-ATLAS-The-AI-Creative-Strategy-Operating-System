@@ -44,14 +44,22 @@ export class AnthropicProvider implements ModelProvider {
       .map((block) => block.text ?? "")
       .join("\n");
 
+    const usage = data.usage
+      ? {
+          ...(data.usage.input_tokens === undefined
+            ? {}
+            : { inputTokens: data.usage.input_tokens }),
+          ...(data.usage.output_tokens === undefined
+            ? {}
+            : { outputTokens: data.usage.output_tokens }),
+        }
+      : undefined;
+
     return {
       text,
       provider: this.providerId,
       model: data.model ?? request.model,
-      usage: {
-        inputTokens: data.usage?.input_tokens,
-        outputTokens: data.usage?.output_tokens,
-      },
+      ...(usage ? { usage } : {}),
     };
   }
 }
