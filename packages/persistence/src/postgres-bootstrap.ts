@@ -1,4 +1,4 @@
-import type { PostgresClient } from "./postgres-repository";
+import type { PostgresClient } from "./postgres-repository.js";
 
 export interface PersistenceConfig {
   databaseUrl: string;
