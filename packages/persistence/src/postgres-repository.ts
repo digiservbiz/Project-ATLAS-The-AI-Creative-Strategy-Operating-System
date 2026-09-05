@@ -1,4 +1,4 @@
-import type { CampaignRecord, CampaignRepository, LearningRecord, LearningRepository, MetricRecord, MetricsRepository } from "./persistence-ports";
+import type { CampaignRecord, CampaignRepository, LearningRecord, LearningRepository, MetricRecord, MetricsRepository } from "./persistence-ports.js";
 
 export interface PostgresClient {
   query<T = unknown>(sql: string, params?: unknown[]): Promise<{ rows: T[] }>;
