@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import type { SemanticSearchRequest } from "@atlas/contracts";
 import { StrategyContextBuilder } from "./strategy-context";
 
 const semanticResult = {
@@ -23,9 +24,9 @@ const semanticResult = {
 
 describe("StrategyContextBuilder", () => {
   it("retrieves organization/project-scoped historical evidence before strategy", async () => {
-    let request: Record<string, unknown> | undefined;
+    let request: SemanticSearchRequest | undefined;
     const builder = new StrategyContextBuilder({
-      async search(input) {
+      async search(input: SemanticSearchRequest) {
         request = input;
         return semanticResult;
       },
