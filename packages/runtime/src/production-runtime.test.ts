@@ -13,6 +13,8 @@ const context: AgentContext = { organizationId: "org", objective: "test", inputs
 const steps: WorkflowStep[] = [{ id: "one", skillId: "one" }];
 
 const skill: AgentSkill = { skillId: "one", async execute() { return { output: { ok: true } }; } };
+const approvalSkill: AgentSkill = { skillId: "approval", async execute() { return { output: { approved: false }, requiresApproval: true }; } };
+const approvalSteps: WorkflowStep[] = [{ id: "approval", skillId: "approval" }];
 
 describe("ProductionAtlasRuntime", () => {
   it("submits a durable workflow job and executes it", async () => {
@@ -22,5 +24,15 @@ describe("ProductionAtlasRuntime", () => {
     expect(submitted.status).toBe("queued"); expect(queue.jobs).toHaveLength(1);
     const result = await runtime.execute("rt-1", "run-1", context, steps);
     expect(result.status).toBe("completed"); expect(result.workflow?.steps.one).toBe("completed");
+  });
+
+  it("persists an awaiting-approval runtime state", async () => {
+    const store = new MemoryStore(); const queue = new Queue();
+    const runtime = new ProductionAtlasRuntime(store, queue, new AtlasOrchestrator([approvalSkill]));
+    await runtime.submit("rt-approval", context, approvalSteps);
+    const result = await runtime.execute("rt-approval", "run-approval", context, approvalSteps);
+    expect(result.status).toBe("awaiting_approval");
+    expect(result.workflow?.status).toBe("awaiting_approval");
+    expect(store.records.get("rt-approval")?.status).toBe("awaiting_approval");
   });
 });
