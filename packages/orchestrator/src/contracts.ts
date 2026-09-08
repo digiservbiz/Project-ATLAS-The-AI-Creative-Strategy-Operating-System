@@ -1,4 +1,5 @@
 export type WorkflowStepStatus = "pending" | "running" | "completed" | "failed" | "skipped";
+export type WorkflowRunStatus = "completed" | "failed" | "awaiting_approval" | "skipped";
 
 export interface AgentContext {
   organizationId: string;
@@ -28,7 +29,7 @@ export interface WorkflowStep {
 
 export interface WorkflowRun {
   id: string;
-  status: WorkflowStepStatus;
+  status: WorkflowRunStatus;
   steps: Record<string, WorkflowStepStatus>;
   outputs: Record<string, AgentResult>;
 }
