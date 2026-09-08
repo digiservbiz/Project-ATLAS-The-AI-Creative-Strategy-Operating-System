@@ -40,8 +40,12 @@ export class ProductionAtlasRuntime {
     await this.store.save(started);
     try {
       const workflow = await this.orchestrator.run(runId, context, steps);
-      const awaiting = Object.values(workflow.outputs).some((result) => result.requiresApproval);
-      const status: RuntimeStatus = awaiting ? "awaiting_approval" : workflow.status === "failed" ? "failed" : "completed";
+      const awaiting = Object.values(workflow.outputs).some((result) => result.requiresApproval === true);
+      const status: RuntimeStatus = awaiting
+        ? "awaiting_approval"
+        : workflow.status === "failed"
+          ? "failed"
+          : "completed";
       const done = { ...started, status, workflow, updatedAt: new Date().toISOString() };
       await this.store.save(done);
       return done;
