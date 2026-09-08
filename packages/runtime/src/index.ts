@@ -1,1 +1,1 @@
-export * from "./production-runtime";
+export * from "./production-runtime.js";
