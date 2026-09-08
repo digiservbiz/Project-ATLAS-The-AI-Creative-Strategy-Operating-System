@@ -14,7 +14,7 @@ export class AtlasOrchestrator {
   }
 
   async run(runId: string, context: AgentContext, steps: WorkflowStep[]): Promise<WorkflowRun> {
-    const status: Record<string, WorkflowRun["status"]> = {};
+    const status: Record<string, WorkflowRun["steps"][string]> = {};
     const outputs: Record<string, AgentResult> = {};
     for (const step of steps) status[step.id] = "pending";
 
@@ -46,10 +46,13 @@ export class AtlasOrchestrator {
     }
 
     const values = Object.values(status);
-    const overall: WorkflowRun["status"] = values.includes("failed")
-      ? "failed"
-      : values.includes("running")
-        ? "running"
+    const approvalRequired = Object.values(outputs).some(
+      (result) => result.requiresApproval === true,
+    );
+    const overall: WorkflowRun["status"] = approvalRequired
+      ? "awaiting_approval"
+      : values.includes("failed")
+        ? "failed"
         : values.includes("skipped") && !values.every((value) => value === "completed")
           ? "skipped"
           : "completed";
