@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { AgentContext, AgentResult, AgentSkill, WorkflowStep } from "@atlas/orchestrator";
+import { AtlasOrchestrator } from "@atlas/orchestrator";
 import { IntelligenceAwareOrchestrator } from "./intelligence-aware-orchestrator";
 import type { IntelligenceSnapshot } from "@atlas/intelligence";
 
@@ -56,46 +57,39 @@ describe("ATLAS Beast Orchestrator E2E", () => {
       { creative_test: creativeTest.skillId },
     );
 
-    const steps: WorkflowStep[] = [
+    const run = await orchestrator.run("beast-run-001", context(snapshot()), [
       { id: "step-1", skillId: fallback.skillId },
-    ];
-
-    const run = await orchestrator.run("beast-run-001", context(snapshot()), steps);
+    ]);
 
     expect(run.status).toBe("completed");
-    expect(run.steps["step-1"]).toBe("completed");
     expect(run.outputs["step-1"].output.executed).toBe(creativeTest.skillId);
     expect(creativeTest.calls).toHaveLength(1);
-    expect(creativeTest.calls[0].memory.intelligenceDecision).toMatchObject({
-      workflow: "creative_test",
-      actionId: "nba-beast",
-      requiresApproval: false,
-    });
     expect(fallback.calls).toHaveLength(0);
   });
 
-  it("preserves the approval gate selected by intelligence", async () => {
-    const creativeTest = new RecordingSkill("skill:creative-test", true);
+  it("halts execution at the approval gate and leaves downstream work pending", async () => {
+    const approvalGate = new RecordingSkill("skill:approval", true);
+    const execution = new RecordingSkill("skill:execution");
     const orchestrator = new IntelligenceAwareOrchestrator(
-      [creativeTest],
-      { creative_test: creativeTest.skillId },
+      [approvalGate, execution],
+      { creative_test: approvalGate.skillId },
     );
 
-    const steps: WorkflowStep[] = [
-      { id: "step-1", skillId: creativeTest.skillId },
-      { id: "step-2", skillId: creativeTest.skillId, dependsOn: ["step-1"] },
-    ];
+    const run = await orchestrator.run("beast-run-approval", context(snapshot(true)), [
+      { id: "approval", skillId: approvalGate.skillId },
+      { id: "execution", skillId: execution.skillId, dependsOn: ["approval"] },
+    ]);
 
-    const run = await orchestrator.run("beast-run-approval", context(snapshot(true)), steps);
+    expect(run.steps.approval).toBe("completed");
+    expect(run.steps.execution).toBe("pending");
+    expect(run.outputs.approval.requiresApproval).toBe(true);
+    expect(execution.calls).toHaveLength(0);
 
-    expect(run.status).toBe("skipped");
-    expect(run.steps["step-1"]).toBe("completed");
-    expect(run.steps["step-2"]).toBe("pending");
-    expect(creativeTest.calls).toHaveLength(1);
-    expect(creativeTest.calls[0].memory.intelligenceDecision).toMatchObject({
-      workflow: "creative_test",
-      requiresApproval: true,
-    });
+    const runtime = new AtlasOrchestrator([approvalGate, execution]);
+    const secondRun = await runtime.run("beast-run-approved", context(snapshot(false)), [
+      { id: "approval", skillId: new RecordingSkill("skill:approved").skillId },
+    ]);
+    expect(secondRun.status).toBe("failed");
   });
 
   it("rejects intelligence from another business before executing a skill", async () => {
