@@ -1,6 +1,6 @@
-import type { AgentContext, AgentResult, AgentSkill, WorkflowRun, WorkflowStep } from "./contracts";
+import type { AgentContext, AgentResult, AgentSkill, WorkflowRun, WorkflowStep } from "./contracts.js";
 
-export * from "./contracts";
+export * from "./contracts.js";
 
 export class AtlasOrchestrator {
   private readonly skills = new Map<string, AgentSkill>();
@@ -20,7 +20,7 @@ export class AtlasOrchestrator {
 
     for (const step of steps) {
       const dependencies = step.dependsOn ?? [];
-      if (dependencies.some((dependency) => status[dependency] !== "completed")) {
+      if (dependencies.some((dependency: string) => status[dependency] !== "completed")) {
         status[step.id] = "skipped";
         continue;
       }
