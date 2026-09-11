@@ -75,7 +75,7 @@ curl -X POST http://localhost:3000/v1/intelligence/actions \
 
 ## Quality gate
 
-GitHub Actions runs typecheck, tests, and build on pushes and pull requests targeting `main` and `dev`. GitHub's workflow syntax supports branch filters for these events. citeturn0view0
+GitHub Actions runs typecheck, tests, and build on pushes and pull requests targeting `main` and `dev`.
 
 ## Production boundary
 
