@@ -1,6 +1,18 @@
-import type { AgentContext, AgentResult, AgentSkill, WorkflowRun, WorkflowStep } from "./contracts.js";
+import type {
+  AgentContext,
+  AgentResult,
+  AgentSkill,
+  WorkflowRun,
+  WorkflowStep,
+  WorkflowStepStatus,
+} from "./contracts.js";
 
 export * from "./contracts.js";
+
+interface WorkflowExecutionState {
+  status: Record<string, WorkflowStepStatus>;
+  outputs: Record<string, AgentResult>;
+}
 
 export class AtlasOrchestrator {
   private readonly skills = new Map<string, AgentSkill>();
@@ -14,42 +26,77 @@ export class AtlasOrchestrator {
   }
 
   async run(runId: string, context: AgentContext, steps: WorkflowStep[]): Promise<WorkflowRun> {
-    const status: Record<string, WorkflowRun["steps"][string]> = {};
+    const status: Record<string, WorkflowStepStatus> = {};
     const outputs: Record<string, AgentResult> = {};
     for (const step of steps) status[step.id] = "pending";
 
+    return this.execute(runId, context, steps, { status, outputs });
+  }
+
+  async resume(
+    runId: string,
+    context: AgentContext,
+    steps: WorkflowStep[],
+    previous: WorkflowRun,
+  ): Promise<WorkflowRun> {
+    if (previous.status !== "awaiting_approval") {
+      throw new Error(`Workflow is not awaiting approval: ${previous.id}`);
+    }
+
+    const status: Record<string, WorkflowStepStatus> = {};
+    const outputs: Record<string, AgentResult> = { ...previous.outputs };
+
     for (const step of steps) {
+      status[step.id] = previous.steps[step.id] ?? "pending";
+    }
+
+    return this.execute(runId, context, steps, { status, outputs });
+  }
+
+  private async execute(
+    runId: string,
+    context: AgentContext,
+    steps: WorkflowStep[],
+    state: WorkflowExecutionState,
+  ): Promise<WorkflowRun> {
+    let approvalRequested = false;
+
+    for (const step of steps) {
+      if (state.status[step.id] === "completed") continue;
+      if (state.status[step.id] === "failed") break;
+
       const dependencies = step.dependsOn ?? [];
-      if (dependencies.some((dependency: string) => status[dependency] !== "completed")) {
-        status[step.id] = "skipped";
+      if (dependencies.some((dependency: string) => state.status[dependency] !== "completed")) {
+        state.status[step.id] = "skipped";
         continue;
       }
+
       const skill = this.skills.get(step.skillId);
       if (!skill) {
-        status[step.id] = "failed";
+        state.status[step.id] = "failed";
         throw new Error(`Skill not registered: ${step.skillId}`);
       }
 
-      status[step.id] = "running";
+      state.status[step.id] = "running";
       try {
         const result = await skill.execute({
           ...context,
-          memory: { ...context.memory, workflowOutputs: outputs },
+          memory: { ...context.memory, workflowOutputs: state.outputs },
         });
-        outputs[step.id] = result;
-        status[step.id] = "completed";
-        if (result.requiresApproval) break;
+        state.outputs[step.id] = result;
+        state.status[step.id] = "completed";
+        if (result.requiresApproval) {
+          approvalRequested = true;
+          break;
+        }
       } catch (error) {
-        status[step.id] = "failed";
+        state.status[step.id] = "failed";
         throw error;
       }
     }
 
-    const values = Object.values(status);
-    const approvalRequired = Object.values(outputs).some(
-      (result) => result.requiresApproval === true,
-    );
-    const overall: WorkflowRun["status"] = approvalRequired
+    const values = Object.values(state.status);
+    const overall: WorkflowRun["status"] = approvalRequested
       ? "awaiting_approval"
       : values.includes("failed")
         ? "failed"
@@ -57,6 +104,6 @@ export class AtlasOrchestrator {
           ? "skipped"
           : "completed";
 
-    return { id: runId, status: overall, steps: status, outputs };
+    return { id: runId, status: overall, steps: state.status, outputs: state.outputs };
   }
 }
