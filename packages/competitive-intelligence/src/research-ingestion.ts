@@ -37,7 +37,12 @@ export interface ResearchSourceAdapter {
 }
 
 export interface ResearchFindingStore {
-  findBySource(sourceType: ResearchSourceType, sourceId: string): Promise<ResearchFinding | null>;
+  findBySource(
+    organizationId: string,
+    projectId: string,
+    sourceType: ResearchSourceType,
+    sourceId: string,
+  ): Promise<ResearchFinding | null>;
   upsert(finding: ResearchFinding): Promise<void>;
 }
 
@@ -51,7 +56,7 @@ export interface ResearchIngestionResult {
   updated: number;
 }
 
-/** Provider-neutral research ingestion with provenance, tenant isolation and indexing hooks. */
+/** Provider-neutral research ingestion with provenance and tenant-scoped persistence/indexing hooks. */
 export class ResearchIntelligenceService {
   constructor(
     private readonly adapters: ResearchSourceAdapter[],
@@ -73,7 +78,12 @@ export class ResearchIntelligenceService {
     let updated = 0;
     for (const finding of findings) {
       const existing = this.store
-        ? await this.store.findBySource(finding.sourceType, finding.provenance.sourceId)
+        ? await this.store.findBySource(
+            query.organizationId,
+            query.projectId,
+            finding.sourceType,
+            finding.provenance.sourceId,
+          )
         : null;
       if (existing) updated += 1;
       else inserted += 1;
@@ -106,7 +116,7 @@ function normalizeFinding(finding: ResearchFinding, query: ResearchQuery): Resea
 function deduplicate(items: ResearchFinding[]): ResearchFinding[] {
   const seen = new Set<string>();
   return items.filter((item) => {
-    const key = `${item.sourceType}:${item.provenance.sourceId}`;
+    const key = `${item.organizationId}:${item.projectId}:${item.sourceType}:${item.provenance.sourceId}`;
     if (seen.has(key)) return false;
     seen.add(key);
     return true;
