@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ResearchIntelligenceService, type ResearchFinding, type ResearchSourceAdapter } from "./research-ingestion";
+import { ResearchIntelligenceService, type ResearchFinding, type ResearchFindingStore, type ResearchSourceAdapter } from "./research-ingestion";
 
 const finding = (id: string, sourceId = id): ResearchFinding => ({
   id,
@@ -12,6 +12,18 @@ const finding = (id: string, sourceId = id): ResearchFinding => ({
   evidenceStrength: "medium",
   tags: ["Pain Point", "pain point", ""],
 });
+
+class RecordingStore implements ResearchFindingStore {
+  lookups: Array<[string, string, string, string]> = [];
+  saved: ResearchFinding[] = [];
+
+  async findBySource(organizationId: string, projectId: string, sourceType: ResearchFinding["sourceType"], sourceId: string) {
+    this.lookups.push([organizationId, projectId, sourceType, sourceId]);
+    return null;
+  }
+
+  async upsert(item: ResearchFinding) { this.saved.push(item); }
+}
 
 describe("ResearchIntelligenceService", () => {
   it("normalizes, deduplicates, persists and indexes research findings", async () => {
@@ -40,6 +52,37 @@ describe("ResearchIntelligenceService", () => {
     expect(indexed).toHaveLength(2);
     expect(result.findings[0].title).toBe("Customer insight");
     expect(result.findings[0].tags).toEqual(["pain point"]);
+  });
+
+  it("passes tenant scope into every persistence lookup", async () => {
+    const store = new RecordingStore();
+    const service = new ResearchIntelligenceService([
+      { sourceType: "review", async search() { return [{ ...finding("review-1"), sourceType: "review", provenance: { ...finding("review-1").provenance, sourceType: "review" } }]; } },
+    ], store);
+
+    await service.ingest({ organizationId: "org-1", projectId: "project-1", query: "reviews", source: "review" });
+
+    expect(store.lookups).toEqual([["org-1", "project-1", "review", "review-1"]]);
+  });
+
+  it("keeps identical source ids isolated between tenants", async () => {
+    const store = new RecordingStore();
+    const service = new ResearchIntelligenceService([
+      {
+        sourceType: "community",
+        async search(query) {
+          return [{ ...finding(query.organizationId), organizationId: query.organizationId, projectId: query.projectId, provenance: { ...finding("shared").provenance, sourceId: "shared" } }];
+        },
+      },
+    ], store);
+
+    await service.ingest({ organizationId: "org-1", projectId: "project-1", query: "same" });
+    await service.ingest({ organizationId: "org-2", projectId: "project-2", query: "same" });
+
+    expect(store.lookups).toEqual([
+      ["org-1", "project-1", "community", "shared"],
+      ["org-2", "project-2", "community", "shared"],
+    ]);
   });
 
   it("rejects findings from another tenant", async () => {
