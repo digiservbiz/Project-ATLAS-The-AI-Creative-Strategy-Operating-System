@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { IntelligenceSnapshot, PlatformPerformanceInput } from "@atlas/intelligence";
-import type { AgentContext, AgentResult, AgentSkill, WorkflowRun } from "@atlas/orchestrator";
+import type { WorkflowRun } from "@atlas/orchestrator";
 import { AtlasAutonomousLoop } from "./atlas-autonomous-loop";
 import type { AtlasOperatingLoopInput, AtlasOperatingLoopResult } from "./atlas-operating-loop";
 
@@ -56,5 +56,19 @@ describe("AtlasAutonomousLoop", () => {
 
     expect(result.iterations).toHaveLength(1);
     expect(result.stopReason).toBe("awaiting_approval");
+  });
+
+  it("stops when the loop has neither new evidence nor a new decision", async () => {
+    const operatingLoop = { run: async (input: AtlasOperatingLoopInput) => ({
+      ...resultFor(input),
+      nextSnapshot: input.snapshot,
+      nextDecision: { workflow: "creative_experimentation", actionId: "action-1", reason: "same", confidence: 0.9, requiresApproval: false },
+    }) } as unknown as import("./atlas-operating-loop").AtlasOperatingLoop;
+    const loop = new AtlasAutonomousLoop(operatingLoop);
+
+    const result = await loop.run(baseInput, { maxIterations: 5 });
+
+    expect(result.iterations).toHaveLength(1);
+    expect(result.stopReason).toBe("no_actionable_progress");
   });
 });
