@@ -1,12 +1,12 @@
 # Project ATLAS — Project State
 
-**Updated:** 2026-08-24
+**Updated:** 2026-09-12
 **Active branch:** `dev`
 **Project:** AI Creative Strategy Operating System
 
 ## Current status
 
-ATLAS is in **integration and production-hardening**. The intelligence layer is implemented as bounded services, durable PostgreSQL persistence is wired, persisted Strategic State/Learning records can be projected into SIEL/pgvector, and production workflow execution can now consume an intelligence-selected next action through the orchestrator factory.
+ATLAS is in **integration and production-hardening**. The intelligence layer is implemented as bounded services, durable PostgreSQL persistence is wired, persisted Strategic State/Learning records can be projected into SIEL/pgvector, production workflow execution can consume an intelligence-selected next action, and a local API composition shell is now available for smoke testing.
 
 ## Implemented intelligence layer
 
@@ -36,6 +36,7 @@ ATLAS is in **integration and production-hardening**. The intelligence layer is 
 - SIEL/pgvector intelligence projection for persisted Strategic State and Learning
 - Intelligence-aware production orchestrator bridge
 - Production runtime factory integration for intelligence-driven workflow selection
+- Bounded autonomous operating loop with performance feedback and approval stops
 
 ## Persistence + semantic architecture
 
@@ -51,6 +52,16 @@ The existing persistence and semantic migrations are reused. No duplicate intell
 
 The bridge is opt-in through the production runtime factory. Existing workflows remain unchanged when intelligence mode is disabled or no intelligence snapshot is present. Scope validation prevents a snapshot whose business model and strategic state disagree from reaching execution.
 
+## Local application entry point
+
+`apps/api` provides a minimal dependency-light composition shell for local smoke testing:
+
+- `GET /health` verifies the application process.
+- `POST /v1/intelligence/actions` exercises the real Next Best Action engine without external credentials.
+- `pnpm dev` starts the API on port 3000 by default.
+
+This is intentionally a local/test boundary. Production authentication, database wiring, provider credentials, queues and account-specific adapters remain deployment concerns.
+
 ## Integration loop
 
 `Business Intelligence → Strategic State → Evidence → Hypothesis → Experiment → Outcome → Learning → SIEL → Intelligence Hub → Next Best Action → Orchestrator → bounded workflow → Performance → Learning`
@@ -63,7 +74,7 @@ The bridge is opt-in through the production runtime factory. Existing workflows 
 4. Complete platform-specific strategy adapters.
 5. Complete agency/multi-client tenant isolation and authorization checks across intelligence state and memory.
 6. Validate PostgreSQL migrations, secrets, OAuth/provider scopes, scheduling, observability and deployment with real target-environment credentials.
-7. Add production dependency-injection wiring for the real business-model/snapshot loader and workflow skill map in the API/application composition root.
+7. Replace the local API shell's in-memory/request composition with production dependency-injection wiring for authenticated business-model/snapshot loading, scoped repositories, workflow skill maps and durable workers.
 
 ## Architectural rule
 
