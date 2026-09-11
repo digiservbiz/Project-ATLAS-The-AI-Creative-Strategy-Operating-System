@@ -40,20 +40,55 @@ export class ProductionAtlasRuntime {
     await this.store.save(started);
     try {
       const workflow = await this.orchestrator.run(runId, context, steps);
-      const status: RuntimeStatus = workflow.status === "awaiting_approval"
-        ? "awaiting_approval"
-        : workflow.status === "failed"
-          ? "failed"
-          : workflow.status === "skipped"
-            ? "failed"
-            : "completed";
-      const done = { ...started, status, workflow, updatedAt: new Date().toISOString() };
-      await this.store.save(done);
-      return done;
+      return this.persistWorkflow(started, workflow);
     } catch (error) {
-      const failed = { ...started, status: "failed" as RuntimeStatus, error: error instanceof Error ? error.message : String(error), updatedAt: new Date().toISOString() };
-      await this.store.save(failed);
-      return failed;
+      return this.persistFailure(started, error);
     }
+  }
+
+  async resumeAfterApproval(
+    runtimeId: string,
+    runId: string,
+    context: AgentContext,
+    steps: WorkflowStep[],
+  ): Promise<RuntimeRecord> {
+    const current = await this.store.get(runtimeId);
+    if (!current) throw new Error(`Runtime not found: ${runtimeId}`);
+    if (current.status !== "awaiting_approval" || !current.workflow) {
+      throw new Error(`Runtime is not awaiting approval: ${runtimeId}`);
+    }
+
+    const started = { ...current, status: "running" as RuntimeStatus, updatedAt: new Date().toISOString() };
+    await this.store.save(started);
+    try {
+      const workflow = await this.orchestrator.resume(runId, context, steps, current.workflow);
+      return this.persistWorkflow(started, workflow);
+    } catch (error) {
+      return this.persistFailure(started, error);
+    }
+  }
+
+  private async persistWorkflow(started: RuntimeRecord, workflow: WorkflowRun): Promise<RuntimeRecord> {
+    const status: RuntimeStatus = workflow.status === "awaiting_approval"
+      ? "awaiting_approval"
+      : workflow.status === "failed"
+        ? "failed"
+        : workflow.status === "skipped"
+          ? "failed"
+          : "completed";
+    const done = { ...started, status, workflow, updatedAt: new Date().toISOString() };
+    await this.store.save(done);
+    return done;
+  }
+
+  private async persistFailure(started: RuntimeRecord, error: unknown): Promise<RuntimeRecord> {
+    const failed = {
+      ...started,
+      status: "failed" as RuntimeStatus,
+      error: error instanceof Error ? error.message : String(error),
+      updatedAt: new Date().toISOString(),
+    };
+    await this.store.save(failed);
+    return failed;
   }
 }
