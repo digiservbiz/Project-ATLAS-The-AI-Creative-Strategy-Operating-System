@@ -34,12 +34,19 @@ export class AtlasAutonomousLoop {
       const performance = options.nextPerformance
         ? await options.nextPerformance(result, iteration + 1)
         : undefined;
-      if (!performance) return { iterations, finalSnapshot: result.nextSnapshot, stopReason: "completed" };
 
-      const previousAction = result.decision.actionId ?? result.decision.workflow;
-      const nextAction = result.nextDecision.actionId ?? result.nextDecision.workflow;
-      if (previousAction === nextAction && !result.performance) {
-        return { iterations, finalSnapshot: result.nextSnapshot, stopReason: "no_actionable_progress" };
+      // A performance provider is itself an actionable source of progress: do not
+      // stop merely because the selected workflow remains the same before that
+      // performance is ingested. The next iteration will persist the result and
+      // re-evaluate intelligence with the new evidence.
+      if (!performance) {
+        const previousAction = result.decision.actionId ?? result.decision.workflow;
+        const nextAction = result.nextDecision.actionId ?? result.nextDecision.workflow;
+        const snapshotChanged = result.nextSnapshot !== current.snapshot;
+        if (previousAction === nextAction && !result.performance && !snapshotChanged) {
+          return { iterations, finalSnapshot: result.nextSnapshot, stopReason: "no_actionable_progress" };
+        }
+        return { iterations, finalSnapshot: result.nextSnapshot, stopReason: "completed" };
       }
 
       current = { ...current, snapshot: result.nextSnapshot, performance };
