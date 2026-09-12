@@ -7,7 +7,7 @@
     "dev": "node --experimental-strip-types src/server.ts",
     "build": "tsc -p tsconfig.json --noEmit",
     "lint": "tsc -p tsconfig.json --noEmit",
-    "test": "node --test",
+    "test": "node --experimental-strip-types --test",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
