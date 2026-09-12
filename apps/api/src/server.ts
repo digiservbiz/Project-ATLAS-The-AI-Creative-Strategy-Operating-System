@@ -1,8 +1,10 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
-import { createAtlasApplication, type IntelligenceActionsRequest } from "./application.js";
+import { createAtlasApplication, type IntelligenceActionsRequest, type AutonomousRunRequest } from "./application.js";
+import { createLocalAtlasComposition } from "./local-composition.js";
 
 const port = Number(process.env.PORT ?? 3000);
-const application = createAtlasApplication();
+const localComposition = createLocalAtlasComposition();
+const application = createAtlasApplication({ autonomousLoop: localComposition.autonomousLoop });
 
 function json(response: ServerResponse, status: number, body: unknown): void {
   response.writeHead(status, { "content-type": "application/json; charset=utf-8" });
@@ -19,7 +21,7 @@ async function handler(request: IncomingMessage, response: ServerResponse): Prom
   const url = new URL(request.url ?? "/", `http://${request.headers.host ?? "localhost"}`);
 
   if (request.method === "GET" && url.pathname === "/health") {
-    json(response, 200, { service: "atlas-api", status: "ok", version: "application-composed" });
+    json(response, 200, { service: "atlas-api", status: "ok", version: "local-composition" });
     return;
   }
 
@@ -27,8 +29,9 @@ async function handler(request: IncomingMessage, response: ServerResponse): Prom
     json(response, 200, {
       service: "atlas-api",
       application: "configured",
-      autonomousRuntime: "dependency-injection-required",
+      autonomousRuntime: "configured",
       mode: "safe-local",
+      externalActions: false,
     });
     return;
   }
@@ -43,6 +46,19 @@ async function handler(request: IncomingMessage, response: ServerResponse): Prom
       json(response, 200, { actions });
     } catch (error) {
       json(response, 400, { error: error instanceof Error ? error.message : "Invalid request" });
+    }
+    return;
+  }
+
+  if (request.method === "POST" && url.pathname === "/v1/autonomous/run") {
+    try {
+      const raw = await readBody(request);
+      const body = (raw ? JSON.parse(raw) : {}) as AutonomousRunRequest;
+      if (!body.tenant || !body.input) throw new Error("tenant and input are required");
+      const result = await application.runAutonomous(body);
+      json(response, 200, result);
+    } catch (error) {
+      json(response, 400, { error: error instanceof Error ? error.message : "Invalid autonomous request" });
     }
     return;
   }
