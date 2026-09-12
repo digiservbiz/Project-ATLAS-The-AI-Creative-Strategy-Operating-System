@@ -12,7 +12,8 @@
   },
   "dependencies": {
     "@atlas/automation": "workspace:*",
-    "@atlas/intelligence": "workspace:*"
+    "@atlas/intelligence": "workspace:*",
+    "@atlas/orchestrator": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^24.3.0",
