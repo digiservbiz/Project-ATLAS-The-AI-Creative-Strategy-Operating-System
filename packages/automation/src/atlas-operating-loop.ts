@@ -1,11 +1,15 @@
 import type { IntelligenceSnapshot, PersistentIntelligenceService, PlatformPerformanceInput } from "@atlas/intelligence";
 import { selectNextWorkflow, type WorkflowDecision } from "@atlas/intelligence";
 import type { AgentContext, WorkflowRun, WorkflowStep } from "@atlas/orchestrator";
-import type { ProductAnalysis, ProductUrlAnalyzer } from "../../creative-intelligence/src/product-url";
+import type { ProductAnalysis } from "../../creative-intelligence/src/product-url";
 import { CreativeProductionPlanner, type CreativeBrief } from "../../creative-intelligence/src/creative-production";
 import { buildStrategyPack, type StrategyPack } from "../../creative-intelligence/src/strategy-pack";
 import type { PerformanceIntelligenceIngestion, PerformanceIntelligenceIngestionResult } from "./performance-intelligence-ingestion";
 import { IntelligenceAwareOrchestrator } from "./intelligence-aware-orchestrator";
+
+export interface ProductAnalyzer {
+  analyze(url: string): Promise<ProductAnalysis>;
+}
 
 export interface AtlasOperatingLoopInput {
   runId: string;
@@ -30,7 +34,7 @@ export interface AtlasOperatingLoopResult {
 }
 
 export interface AtlasOperatingLoopDependencies {
-  analyzer: ProductUrlAnalyzer;
+  analyzer: ProductAnalyzer;
   planner?: CreativeProductionPlanner;
   orchestrator: IntelligenceAwareOrchestrator;
   performanceIngestion?: PerformanceIntelligenceIngestion;
