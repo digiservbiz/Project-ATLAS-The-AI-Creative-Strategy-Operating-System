@@ -10,7 +10,6 @@ import {
   type CreativeDNA,
 } from "@atlas/intelligence";
 import type { AgentContext, AgentResult, AgentSkill } from "@atlas/orchestrator";
-import { ProductUrlAnalyzer, type ProductPage, type ProductPageFetcher } from "../../packages/creative-intelligence/src/product-url.js";
 import type { AtlasApplication } from "./application.js";
 import { createAtlasApplication } from "./application.js";
 
@@ -22,6 +21,17 @@ export interface LocalProductCatalogEntry {
   image: string;
 }
 
+interface LocalProductPage {
+  url: string;
+  title: string;
+  description: string;
+  price: string;
+  currency: string;
+  images: string[];
+  canonicalUrl: string;
+  text: string;
+}
+
 const DEFAULT_PRODUCT: LocalProductCatalogEntry = {
   title: "ATLAS Demo Product",
   description:
@@ -31,13 +41,14 @@ const DEFAULT_PRODUCT: LocalProductCatalogEntry = {
   image: "https://example.local/atlas-demo-product.jpg",
 };
 
-/** Network-free product fetcher used by the local development composition. */
-export class LocalProductPageFetcher implements ProductPageFetcher {
+/** Network-free product analyzer used by the local development composition. */
+class LocalProductAnalyzer {
   constructor(private readonly catalog: Map<string, LocalProductCatalogEntry> = new Map()) {}
 
-  async fetch(url: string): Promise<ProductPage> {
+  async analyze(url: string) {
+    if (!/^https?:\/\//i.test(url)) throw new Error("A valid product URL is required");
     const entry = this.catalog.get(url) ?? DEFAULT_PRODUCT;
-    return {
+    const product: LocalProductPage = {
       url,
       canonicalUrl: url,
       title: entry.title,
@@ -46,6 +57,13 @@ export class LocalProductPageFetcher implements ProductPageFetcher {
       currency: entry.currency,
       images: [entry.image],
       text: `${entry.title}\n${entry.description}`,
+    };
+    return {
+      product,
+      valuePropositions: [entry.description, "Easy to use", "Fast to adopt", "Premium quality"],
+      likelyAudience: ["Busy customers", "Customers looking for a simpler solution"],
+      objections: ["price", "trust", "quality", "shipping", "fit"],
+      creativeAngles: ["problem → solution", "product demonstration", "benefit-led", "social proof", "offer/urgency"],
     };
   }
 }
@@ -126,7 +144,7 @@ export function createLocalAtlasComposition(): LocalAtlasComposition {
     analysis: "atlas:execution",
     retention: "atlas:execution",
   });
-  const analyzer = new ProductUrlAnalyzer(new LocalProductPageFetcher());
+  const analyzer = new LocalProductAnalyzer();
   const operatingLoop = new AtlasOperatingLoop({ analyzer, orchestrator, performanceIngestion, intelligence });
   const autonomousLoop = new AtlasAutonomousLoop(operatingLoop);
 
