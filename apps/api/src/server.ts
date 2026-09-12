@@ -23,6 +23,16 @@ async function handler(request: IncomingMessage, response: ServerResponse): Prom
     return;
   }
 
+  if (request.method === "GET" && url.pathname === "/v1/runtime/status") {
+    json(response, 200, {
+      service: "atlas-api",
+      application: "configured",
+      autonomousRuntime: "dependency-injection-required",
+      mode: "safe-local",
+    });
+    return;
+  }
+
   if (request.method === "POST" && url.pathname === "/v1/intelligence/actions") {
     try {
       const raw = await readBody(request);
