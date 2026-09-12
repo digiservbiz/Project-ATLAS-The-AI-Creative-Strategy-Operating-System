@@ -9,7 +9,7 @@ import {
   PersistentIntelligenceService,
   type CreativeDNA,
 } from "@atlas/intelligence";
-import type { AgentContext, AgentResult, AgentSkill } from "../../packages/orchestrator/src/contracts.js";
+import type { AgentContext, AgentResult, AgentSkill } from "@atlas/orchestrator";
 import { ProductUrlAnalyzer, type ProductPage, type ProductPageFetcher } from "../../packages/creative-intelligence/src/product-url.js";
 import type { AtlasApplication } from "./application.js";
 import { createAtlasApplication } from "./application.js";
