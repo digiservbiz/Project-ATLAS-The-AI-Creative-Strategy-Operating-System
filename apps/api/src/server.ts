@@ -1,7 +1,8 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
-import { generateNextBestActions, type ActionSignals } from "@atlas/intelligence";
+import { createAtlasApplication, type IntelligenceActionsRequest } from "./application.js";
 
 const port = Number(process.env.PORT ?? 3000);
+const application = createAtlasApplication();
 
 function json(response: ServerResponse, status: number, body: unknown): void {
   response.writeHead(status, { "content-type": "application/json; charset=utf-8" });
@@ -18,17 +19,20 @@ async function handler(request: IncomingMessage, response: ServerResponse): Prom
   const url = new URL(request.url ?? "/", `http://${request.headers.host ?? "localhost"}`);
 
   if (request.method === "GET" && url.pathname === "/health") {
-    json(response, 200, { service: "atlas-api", status: "ok" });
+    json(response, 200, { service: "atlas-api", status: "ok", version: "application-composed" });
     return;
   }
 
   if (request.method === "POST" && url.pathname === "/v1/intelligence/actions") {
     try {
       const raw = await readBody(request);
-      const signals = (raw ? JSON.parse(raw) : {}) as ActionSignals;
-      json(response, 200, { actions: generateNextBestActions(signals) });
+      const body = (raw ? JSON.parse(raw) : {}) as Partial<IntelligenceActionsRequest>;
+      const tenant = body.tenant;
+      if (!tenant) throw new Error("tenant.organizationId is required");
+      const actions = application.getIntelligenceActions({ tenant, signals: body.signals ?? {} });
+      json(response, 200, { actions });
     } catch (error) {
-      json(response, 400, { error: error instanceof Error ? error.message : "Invalid JSON request" });
+      json(response, 400, { error: error instanceof Error ? error.message : "Invalid request" });
     }
     return;
   }
