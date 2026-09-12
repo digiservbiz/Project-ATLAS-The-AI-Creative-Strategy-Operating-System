@@ -27,6 +27,10 @@ export interface AtlasApplication {
   runAutonomous(request: AutonomousRunRequest): Promise<AtlasAutonomousLoopResult>;
 }
 
+export interface AtlasApplicationDependencies {
+  autonomousLoop?: AtlasAutonomousLoop;
+}
+
 function assertTenantScope(scope: TenantScope): void {
   if (!scope.organizationId.trim()) throw new Error("organizationId is required");
   if (scope.projectId !== undefined && !scope.projectId.trim()) {
@@ -44,7 +48,7 @@ function assertInputTenant(request: AutonomousRunRequest): void {
   }
 }
 
-export function createAtlasApplication(dependencies: { autonomousLoop: AtlasAutonomousLoop }): AtlasApplication {
+export function createAtlasApplication(dependencies: AtlasApplicationDependencies = {}): AtlasApplication {
   return {
     getIntelligenceActions(request) {
       assertTenantScope(request.tenant);
@@ -52,6 +56,9 @@ export function createAtlasApplication(dependencies: { autonomousLoop: AtlasAuto
     },
     async runAutonomous(request) {
       assertInputTenant(request);
+      if (!dependencies.autonomousLoop) {
+        throw new Error("Autonomous runtime is not configured");
+      }
       return dependencies.autonomousLoop.run(request.input, request.options);
     },
   };
