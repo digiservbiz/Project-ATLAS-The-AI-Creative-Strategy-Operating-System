@@ -1,7 +1,7 @@
 # ATLAS Project State
 
 **Project:** ATLAS — AI Creative Strategy Operating System  
-**Version:** 0.9.2 — SIEL Contracts + Creative Intelligence Architecture  
+**Version:** 0.9.3 — SIEL v1 Foundation  
 **Status:** Active development  
 **Development branch:** `dev`  
 **Stable branch:** `main`
@@ -14,19 +14,7 @@ Build a modular, research-first multi-agent AI system that operates like a senio
 
 The Master PDR is the living source of truth for implementation.
 
-## PDR sections added
-- `docs/PDR/00-MASTER-INDEX.md`
-- `docs/PDR/01-EXECUTIVE-SUMMARY.md`
-- `docs/PDR/02-PRODUCT-REQUIREMENTS.md`
-- `docs/PDR/07-CREATIVE-STRATEGY-ENGINE.md`
-- `docs/PDR/08-SEMANTIC-INTELLIGENCE-AND-EMBEDDING-LAYER.md`
-- `docs/PDR/13-COMPETITIVE-CREATIVE-INTELLIGENCE-ENGINE.md`
-- `docs/PDR/14-AI-CREATIVE-PRODUCTION-AND-MEDIA-GENERATION.md`
-- `docs/PDR/15-AD-PLATFORM-INTEGRATION-AND-EXECUTION.md`
-
 ## Official architecture
-ATLAS now explicitly includes four connected intelligence/execution layers:
-
 1. **SIEL — Semantic Intelligence & Embedding Layer**
 2. **CCIE — Competitive Creative Intelligence Engine**
 3. **AI Creative Production & Media Generation Layer**
@@ -63,15 +51,26 @@ New hypotheses and creative tests
 
 ## Engineering progress
 ### Shared SIEL contracts — implemented
-Added `packages/contracts/src/intelligence.ts` containing:
-- semantic object types
-- tenant/project-scoped semantic object schema
-- versioned embedding record schema
-- semantic search request/response schemas
-- provider-neutral `EmbeddingProvider` interface
-- provider-neutral `SemanticRepository` interface
+`packages/contracts/src/intelligence.ts` defines semantic objects, embedding records, search request/response schemas, `EmbeddingProvider`, and `SemanticRepository`.
 
-These are contracts only; they do not yet implement embedding generation or pgvector retrieval.
+### SIEL v1 foundation — implemented
+- `packages/database/migrations/001_siel.sql`
+  - pgvector extension
+  - tenant-scoped semantic object table
+  - embedding table with provider/model/version lineage
+  - tenant/object-type index
+- `packages/intelligence/src/local-hash-embedding.ts`
+  - deterministic local embedding provider for development/tests
+  - provider-neutral contract implementation
+- `packages/intelligence/src/pgvector-repository.ts`
+  - semantic object upsert
+  - embedding persistence
+  - tenant/project scoped cosine-distance retrieval
+  - object-type filtering
+  - provenance in search results
+- Existing `@atlas/intelligence` package exports were preserved and extended with the new SIEL components.
+
+The local hash provider is a development/testing implementation, not a production-quality semantic model.
 
 ## Evidence discipline
 Public ad libraries and creative-intelligence sources are market-observation inputs. They do not automatically provide verified conversion performance.
@@ -94,8 +93,9 @@ Only authorized/publicly accessible data may be used, subject to platform terms,
 - `@atlas/database`
 - `@atlas/agents`
 - `@atlas/evaluation`
-- PostgreSQL initial migration with pgvector extension.
+- PostgreSQL + pgvector foundation.
 - Durable workflow store boundary.
+- Existing intelligence, tenant authorization, learning and persistence components in `@atlas/intelligence` are preserved.
 
 ## Initial specialists
 1. `product-research@1.0.0`
@@ -106,13 +106,10 @@ Only authorized/publicly accessible data may be used, subject to platform terms,
 6. `qa-validator@1.0.0`
 
 ## Not yet implemented
-- Remaining complete PDR sections
-- Production PostgreSQL repositories
-- Fully wired live Claude execution
-- SIEL v1 implementation and embedding provider
+- Production embedding provider
+- Retrieval evaluation fixtures/tests
 - CCIE source connectors
 - AI media-generation gateway/providers
-- Persistent memory retrieval service
 - Full durable artifact persistence implementation
 - Ad-platform connectors/execution
 - End-to-end runner with artifact passing
@@ -122,22 +119,10 @@ Only authorized/publicly accessible data may be used, subject to platform terms,
 - Frontend/dashboard
 - Production integrations/deployment
 
-## Active work
-1. Complete remaining Master PDR sections.
-2. Convert PDR requirements into agent/skill contracts.
-3. Implement SIEL embedding provider and pgvector repository.
-4. Implement CCIE normalized creative store and first permitted connector.
-5. Implement media-generation gateway contracts.
-6. Implement PostgreSQL repositories and durable WorkflowStore.
-7. Complete live Claude provider integration.
-8. Implement memory/RAG.
-9. Build end-to-end vertical slice.
-10. Add authorized ad-platform intelligence/execution adapters.
-11. Expand evaluation suite.
-
 ## Key decisions
-- PostgreSQL is transactional source of truth; pgvector is planned for semantic retrieval.
+- PostgreSQL is transactional source of truth; pgvector is the semantic retrieval layer.
 - Claude is the initial primary reasoning provider behind a provider-neutral model gateway.
+- Embedding generation remains provider-neutral.
 - Media generation is provider-neutral; no single image/video vendor is architecturally required.
 - External platform connectors are provider-specific and permission-scoped.
 - Paid execution has an explicit human-approval boundary by default.
@@ -145,11 +130,11 @@ Only authorized/publicly accessible data may be used, subject to platform terms,
 - Public market intelligence must not be represented as verified campaign performance.
 
 ## Continuity protocol
-At every major milestone update this file with version/phase, completed work, active work, decisions, open questions, known issues, and next sequence. A new session should read this file before architectural or implementation changes.
+At every major milestone update this file with version/phase, completed work, active work, decisions, open questions, known issues, and next sequence.
 
 ## Next sequence
-1. Implement SIEL embedding provider abstraction and pgvector semantic repository.
-2. Add retrieval evaluation fixtures and tests.
+1. Add SIEL retrieval evaluation fixtures and tests.
+2. Add a production embedding adapter behind `EmbeddingProvider`.
 3. Finish PDR architecture sections for memory/RAG, integrations, API, security, observability and evaluation.
 4. Implement CCIE connector contracts and normalized creative ingestion.
 5. Implement media generation adapters.
