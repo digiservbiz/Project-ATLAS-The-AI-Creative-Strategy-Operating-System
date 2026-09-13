@@ -71,6 +71,22 @@ export interface FailureEvent {
   severity: "warning" | "error";
 }
 
+export interface ScenarioOverrides {
+  strategyConfidence?: number;
+  intelligenceConfidence?: number;
+  intelligenceDecision?: IntelligenceDecision["decision"];
+  semanticMatches?: string[];
+  approvalRequired?: boolean;
+  budgetCents?: number;
+  impressions?: number;
+  clicks?: number;
+  conversions?: number;
+  spendCents?: number;
+  fatigueScore?: number;
+  learningConfidence?: number;
+  suppressNextActions?: boolean;
+}
+
 export interface VerticalSliceResult {
   runId: string;
   status: "completed" | "needs_review" | "failed";
@@ -87,16 +103,31 @@ export interface VerticalSliceResult {
 
 const FIXED_NOW = "2026-01-15T00:00:00.000Z";
 
-function fail(failures: FailureEvent[], stage: SliceStage, code: string, message: string, severity: FailureEvent["severity"] = "error") {
+function fail(
+  failures: FailureEvent[],
+  stage: SliceStage,
+  code: string,
+  message: string,
+  severity: FailureEvent["severity"] = "error",
+) {
   failures.push({ stage, code, message, severity });
 }
 
-export function runDeterministicScenario(product: ProductInput): VerticalSliceResult {
+function hasSemanticSupport(matches: string[]) {
+  return matches.some((match) => match.includes("customer_problem"))
+    && matches.some((match) => match.includes("angle:"))
+    && matches.some((match) => match.includes("offer:"));
+}
+
+export function runDeterministicScenario(
+  product: ProductInput,
+  overrides: ScenarioOverrides = {},
+): VerticalSliceResult {
   const failures: FailureEvent[] = [];
   const stages: SliceStage[] = [];
 
   stages.push("product");
-  if (!product.productId || !product.customerProblem || !product.audience || !product.offer) {
+  if (!product.productId || !product.productName || !product.customerProblem || !product.audience || !product.offer) {
     fail(failures, "product", "PRODUCT_INCOMPLETE", "Product input is missing a required field.");
   }
 
@@ -108,11 +139,15 @@ export function runDeterministicScenario(product: ProductInput): VerticalSliceRe
     promise: `Show a simpler path to solve ${product.customerProblem}.`,
     proofRequirement: "Use a verifiable product demonstration or customer proof before scaling.",
     offer: product.offer,
-    confidence: 0.74,
+    confidence: overrides.strategyConfidence ?? 0.74,
   };
 
+  if (strategy.confidence < 0.6) {
+    fail(failures, "strategy", "LOW_STRATEGY_CONFIDENCE", "Strategy confidence is below the deterministic launch threshold.");
+  }
+
   stages.push("intelligence-decision");
-  const semanticMatches = [
+  const semanticMatches = overrides.semanticMatches ?? [
     "customer_problem:high similarity",
     "angle:problem-solution",
     "offer:current",
@@ -122,13 +157,19 @@ export function runDeterministicScenario(product: ProductInput): VerticalSliceRe
     hypothesis: strategy,
     evidence: ["product brief", "semantic retrieval", "strategy rules"],
     semanticMatches,
-    confidence: 0.78,
-    decision: "proceed",
+    confidence: overrides.intelligenceConfidence ?? 0.78,
+    decision: overrides.intelligenceDecision ?? "proceed",
     reason: "The proposed angle is supported by the supplied problem and semantic context, but proof is still required before scaling.",
   };
 
   if (intelligence.confidence < 0.6) {
     fail(failures, "intelligence-decision", "LOW_DECISION_CONFIDENCE", "Decision confidence is below the deterministic launch threshold.");
+  }
+  if (!hasSemanticSupport(intelligence.semanticMatches)) {
+    fail(failures, "intelligence-decision", "SEMANTIC_RETRIEVAL_MISMATCH", "Semantic retrieval does not support the selected strategy across problem, angle, and offer.");
+  }
+  if (intelligence.decision !== "proceed") {
+    fail(failures, "intelligence-decision", "DECISION_BLOCKED", `Intelligence decision is '${intelligence.decision}', so execution must not proceed.`);
   }
 
   stages.push("orchestrator");
@@ -136,32 +177,47 @@ export function runDeterministicScenario(product: ProductInput): VerticalSliceRe
     executionId: "exec:001",
     channel: "meta",
     creativeVariant: "creative:problem-solution-v1",
-    budgetCents: 5000,
-    approvalRequired: true,
+    budgetCents: overrides.budgetCents ?? 5000,
+    approvalRequired: overrides.approvalRequired ?? true,
   };
 
   if (!execution.approvalRequired) {
     fail(failures, "orchestrator", "APPROVAL_BOUNDARY_BYPASSED", "Paid execution must require explicit approval in the default policy.");
   }
+  if (intelligence.decision !== "proceed") {
+    fail(failures, "orchestrator", "BLOCKED_DECISION_EXECUTED", "Orchestrator received a non-proceed decision but produced an executable plan.");
+  }
 
   stages.push("execution");
-  if (execution.budgetCents <= 0) {
-    fail(failures, "execution", "INVALID_BUDGET", "Execution budget must be greater than zero.");
+  if (execution.budgetCents <= 0 || !Number.isFinite(execution.budgetCents)) {
+    fail(failures, "execution", "INVALID_BUDGET", "Execution budget must be a finite number greater than zero.");
+  }
+  if (!execution.creativeVariant) {
+    fail(failures, "execution", "MISSING_CREATIVE", "Execution requires a creative variant identifier.");
   }
 
   stages.push("performance");
   const performance: PerformanceSnapshot = {
     executionId: execution.executionId,
-    impressions: 10000,
-    clicks: 420,
-    conversions: 14,
-    spendCents: 5000,
-    ctr: 0.042,
-    conversionRate: 14 / 420,
-    costPerConversionCents: 5000 / 14,
-    fatigueScore: 0.82,
+    impressions: overrides.impressions ?? 10000,
+    clicks: overrides.clicks ?? 420,
+    conversions: overrides.conversions ?? 14,
+    spendCents: overrides.spendCents ?? 5000,
+    ctr: (overrides.impressions ?? 10000) > 0 ? (overrides.clicks ?? 420) / (overrides.impressions ?? 10000) : 0,
+    conversionRate: (overrides.clicks ?? 420) > 0 ? (overrides.conversions ?? 14) / (overrides.clicks ?? 420) : 0,
+    costPerConversionCents: (overrides.conversions ?? 14) > 0 ? (overrides.spendCents ?? 5000) / (overrides.conversions ?? 14) : Number.POSITIVE_INFINITY,
+    fatigueScore: overrides.fatigueScore ?? 0.82,
   };
 
+  if (performance.impressions < 0 || performance.clicks < 0 || performance.conversions < 0 || performance.spendCents < 0) {
+    fail(failures, "performance", "INVALID_PERFORMANCE_DATA", "Performance metrics cannot be negative.");
+  }
+  if (performance.clicks > performance.impressions) {
+    fail(failures, "performance", "IMPOSSIBLE_CLICK_VOLUME", "Clicks cannot exceed impressions.");
+  }
+  if (performance.conversions > performance.clicks) {
+    fail(failures, "performance", "IMPOSSIBLE_CONVERSION_VOLUME", "Conversions cannot exceed clicks.");
+  }
   if (performance.conversions <= 0) {
     fail(failures, "performance", "NO_CONVERSIONS", "Performance data contains no conversions; learning should not declare a winner.", "warning");
   }
@@ -172,7 +228,7 @@ export function runDeterministicScenario(product: ProductInput): VerticalSliceRe
     hypothesisId: strategy.hypothesisId,
     variable: "problem-solution angle",
     sampleSize: performance.conversions,
-    confidence: 0.84,
+    confidence: overrides.learningConfidence ?? 0.84,
     winner: strategy.angle,
     result: "supported",
     evidenceIds: ["exec:001", "perf:001"],
@@ -182,11 +238,14 @@ export function runDeterministicScenario(product: ProductInput): VerticalSliceRe
     period: { start: "2026-01-01", end: "2026-01-14" },
   };
   const learning = createLearningFromOutcome(outcome);
-  // Keep this deterministic: the runtime clock must never change the scenario result.
   learning.createdAt = FIXED_NOW;
 
+  if (performance.conversions <= 0 || learning.confidence < 0.6) {
+    fail(failures, "learning", "INSUFFICIENT_LEARNING_EVIDENCE", "Learning requires conversions and confidence at or above the deterministic threshold.");
+  }
+
   stages.push("next-action");
-  const nextActions = generateNextBestActions({
+  const nextActions = overrides.suppressNextActions ? [] : generateNextBestActions({
     fatigueScore: performance.fatigueScore,
     angleGap: true,
     learningConfidence: learning.confidence,
