@@ -1,7 +1,7 @@
 # ATLAS Project State
 
 **Project:** ATLAS — AI Creative Strategy Operating System  
-**Version:** 0.10.0 — Durable Workflow & Artifact Persistence  
+**Version:** 0.10.1 — SIEL Embedding Identity Hardening  
 **Status:** Active development  
 **Development branch:** `dev`  
 **Stable branch:** `main`
