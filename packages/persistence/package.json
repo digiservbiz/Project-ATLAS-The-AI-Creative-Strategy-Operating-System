@@ -1,10 +1,14 @@
 {
   "name": "@atlas/persistence",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "private": true,
   "type": "module",
   "exports": { ".": "./src/index.ts" },
   "scripts": {"build":"tsc","lint":"tsc --noEmit","test":"node --test","typecheck":"tsc --noEmit"},
-  "dependencies": {"@atlas/domain":"workspace:*"},
+  "dependencies": {
+    "@atlas/contracts":"workspace:*",
+    "@atlas/database":"workspace:*",
+    "@atlas/domain":"workspace:*"
+  },
   "devDependencies": {"typescript":"^5.9.2"}
 }
