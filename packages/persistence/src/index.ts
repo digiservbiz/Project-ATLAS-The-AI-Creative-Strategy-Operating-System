@@ -41,3 +41,5 @@ export class InMemoryCampaignRepository implements CampaignRepository {
   }
   async save(campaign: Campaign): Promise<void> { this.data.set(campaign.id, campaign); }
 }
+
+export * from "./artifacts.js";
