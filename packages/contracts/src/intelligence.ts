@@ -64,12 +64,19 @@ export interface EmbeddingProvider {
   embedBatch(inputs: string[]): Promise<number[][]>;
 }
 
+export interface EmbeddingSelector {
+  provider: string;
+  model: string;
+  version: string;
+  dimensions: number;
+}
+
 export interface SemanticRepository {
   upsertObject(object: SemanticObject): Promise<void>;
   saveEmbedding(record: EmbeddingRecord): Promise<void>;
   search(
     request: SemanticSearchRequest,
     queryVector: number[],
-    embeddingModel: string,
+    selector: EmbeddingSelector,
   ): Promise<SemanticSearchResponse>;
 }
