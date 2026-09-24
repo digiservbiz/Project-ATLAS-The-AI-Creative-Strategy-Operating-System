@@ -3,6 +3,7 @@ import type {
   SemanticObject,
   SemanticRepository,
   SemanticSearchResponse,
+  type EmbeddingSelector,
 } from "@atlas/contracts";
 
 export interface RetrievalFixture {
@@ -38,7 +39,12 @@ export async function evaluateRetrieval(
       filters: {},
     },
     queryVector,
-    provider.modelId,
+    {
+      provider: provider.providerId,
+      model: provider.modelId,
+      version: provider.modelVersion,
+      dimensions: provider.dimensions,
+    } satisfies EmbeddingSelector,
   );
 
   const returnedObjectIds = response.results.map((result) => result.object.id);
