@@ -3,12 +3,22 @@
   "version": "0.4.0",
   "private": true,
   "type": "module",
-  "exports": { ".": "./src/index.ts" },
-  "scripts": {"build":"tsc","lint":"tsc --noEmit","test":"node --test","typecheck":"tsc --noEmit"},
-  "dependencies": {
-    "@atlas/contracts":"workspace:*",
-    "@atlas/database":"workspace:*",
-    "@atlas/domain":"workspace:*"
+  "exports": {
+    ".": "./src/index.ts"
   },
-  "devDependencies": {"typescript":"^5.9.2"}
+  "scripts": {
+    "build": "tsc",
+    "lint": "tsc --noEmit",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@atlas/contracts": "workspace:*",
+    "@atlas/database": "workspace:*",
+    "@atlas/domain": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2",
+    "vitest": "^2.1.5"
+  }
 }
