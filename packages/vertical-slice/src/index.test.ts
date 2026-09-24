@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { assertSameTenant } from "@atlas/contracts";
 import { deterministicScenarioInput, runDeterministicScenario } from "./index";
 
 describe("ATLAS deterministic vertical slice", () => {
@@ -22,6 +23,28 @@ describe("ATLAS deterministic vertical slice", () => {
     expect(result.nextActions.some((action) => action.requiredApproval)).toBe(true);
     expect(result.status).toBe("needs_review");
     expect(result.failures).toEqual([]);
+    expect(result.artifacts).toHaveLength(result.stages.length);
+    expect(result.artifacts[0].parentArtifactId).toBeNull();
+    expect(result.artifacts.slice(1).every((artifact, index) =>
+      artifact.parentArtifactId === result.artifacts[index].artifactId,
+    )).toBe(true);
+    expect(result.artifacts.every((artifact) =>
+      artifact.organizationId === deterministicScenarioInput.organizationId
+      && artifact.projectId === deterministicScenarioInput.projectId
+      && artifact.runId === result.runId,
+    )).toBe(true);
+  });
+
+  it("rejects cross-tenant artifact relationships", () => {
+    expect(() => assertSameTenant(
+      { organizationId: "org:a", projectId: "project:a" },
+      { organizationId: "org:b", projectId: "project:a" },
+    )).toThrow("TENANT_SCOPE_VIOLATION");
+
+    expect(() => assertSameTenant(
+      { organizationId: "org:a", projectId: "project:a" },
+      { organizationId: "org:a", projectId: "project:b" },
+    )).toThrow("TENANT_SCOPE_VIOLATION");
   });
 
   it("fails deterministically when the product contract is incomplete", () => {
