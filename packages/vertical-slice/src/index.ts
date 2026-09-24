@@ -5,6 +5,7 @@ import {
   type NextBestAction,
   generateNextBestActions,
 } from "@atlas/intelligence";
+import { buildStageArtifactChain, type StageArtifact } from "./lineage.js";
 
 export type SliceStage =
   | "product"
@@ -22,6 +23,8 @@ export interface ProductInput {
   customerProblem: string;
   audience: string;
   offer: string;
+  organizationId: string;
+  projectId: string;
 }
 
 export interface StrategyDecision {
@@ -91,6 +94,7 @@ export interface VerticalSliceResult {
   runId: string;
   status: "completed" | "needs_review" | "failed";
   stages: SliceStage[];
+  artifacts: StageArtifact[];
   product: ProductInput;
   strategy: StrategyDecision;
   intelligence: IntelligenceDecision;
@@ -127,7 +131,8 @@ export function runDeterministicScenario(
   const stages: SliceStage[] = [];
 
   stages.push("product");
-  if (!product.productId || !product.productName || !product.customerProblem || !product.audience || !product.offer) {
+  if (!product.productId || !product.productName || !product.customerProblem || !product.audience || !product.offer
+    || !product.organizationId || !product.projectId) {
     fail(failures, "product", "PRODUCT_INCOMPLETE", "Product input is missing a required field.");
   }
 
@@ -255,10 +260,19 @@ export function runDeterministicScenario(
     fail(failures, "next-action", "NO_NEXT_ACTION", "A completed learning cycle must produce at least one next action.");
   }
 
+  const runId = "scenario:product-to-learning-001";
+  const artifacts = buildStageArtifactChain({
+    runId,
+    organizationId: product.organizationId,
+    projectId: product.projectId,
+    stages,
+  });
+
   return {
-    runId: "scenario:product-to-learning-001",
+    runId,
     status: failures.some((failure) => failure.severity === "error") ? "failed" : nextActions.some((action) => action.requiredApproval) ? "needs_review" : "completed",
     stages,
+    artifacts,
     product,
     strategy,
     intelligence,
@@ -276,4 +290,6 @@ export const deterministicScenarioInput: ProductInput = {
   customerProblem: "wasting time choosing the right solution",
   audience: "time-poor ecommerce buyers",
   offer: "starter offer with proof-led demo",
+  organizationId: "org:atlas-demo",
+  projectId: "project:atlas-demo",
 };
