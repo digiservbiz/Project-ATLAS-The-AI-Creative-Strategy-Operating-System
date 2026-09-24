@@ -1,6 +1,11 @@
 import type { SemanticObject, SemanticRepository, SemanticSearchRequest, SemanticSearchResponse } from "@atlas/contracts";
 import { Database } from "@atlas/database";
 
+function assertVector(vector: number[], dimensions: number, label: string) {
+  if (vector.length !== dimensions) throw new Error(`${label}_DIMENSION_MISMATCH`);
+  if (!vector.every(Number.isFinite)) throw new Error(`${label}_CONTAINS_NON_FINITE_VALUE`);
+}
+
 export class PgVectorSemanticRepository implements SemanticRepository {
   constructor(private readonly db: Database) {}
 
@@ -20,7 +25,7 @@ export class PgVectorSemanticRepository implements SemanticRepository {
   }
 
   async saveEmbedding(record: { objectId: string; provider: string; model: string; version: string; dimensions: number; vector: number[] }): Promise<void> {
-    if (record.vector.length !== record.dimensions) throw new Error("Embedding dimensions do not match vector length");
+    assertVector(record.vector, record.dimensions, "EMBEDDING");
     await this.db.query(
       `INSERT INTO atlas_semantic_embeddings
         (object_id, provider, model, version, dimensions, embedding)
@@ -32,22 +37,31 @@ export class PgVectorSemanticRepository implements SemanticRepository {
   }
 
   async search(request: SemanticSearchRequest, queryVector: number[], embeddingModel: string): Promise<SemanticSearchResponse> {
+    if (!Number.isInteger(request.topK) || request.topK <= 0) throw new Error("INVALID_TOP_K");
+    if (!request.organizationId || !request.projectId) throw new Error("TENANT_SCOPE_REQUIRED");
+    if (!queryVector.length || !queryVector.every(Number.isFinite)) throw new Error("QUERY_VECTOR_INVALID");
+
     const typeFilter = request.objectTypes.length ? "AND o.object_type = ANY($5::text[])" : "";
     const values: unknown[] = [request.organizationId, request.projectId, `[${queryVector.join(",")}]`, request.topK];
     if (request.objectTypes.length) values.push(request.objectTypes, embeddingModel);
     else values.push(embeddingModel);
     const modelParam = request.objectTypes.length ? "$6" : "$5";
+
     const rows = await this.db.query<any>(
       `SELECT o.id, o.organization_id, o.project_id, o.object_type, o.source_id, o.content,
               o.language, o.market, o.metadata, o.created_at,
               1 - (e.embedding <=> $3::vector) AS similarity
        FROM atlas_semantic_objects o
-       JOIN atlas_semantic_embeddings e ON e.object_id=o.id AND e.model=${modelParam}
+       JOIN atlas_semantic_embeddings e
+         ON e.object_id=o.id
+        AND e.model=${modelParam}
+        AND e.dimensions=cardinality(string_to_array(trim(both '[]' from e.embedding::text), ','))
        WHERE o.organization_id=$1 AND o.project_id=$2 ${typeFilter}
        ORDER BY e.embedding <=> $3::vector
        LIMIT $4`,
       values,
     );
+
     return {
       embeddingModel,
       results: rows.map((row, index) => ({
