@@ -1,4 +1,4 @@
-import type { SemanticObject, SemanticRepository, SemanticSearchRequest, SemanticSearchResponse } from "@atlas/contracts";
+import type { EmbeddingSelector, SemanticObject, SemanticRepository, SemanticSearchRequest, SemanticSearchResponse } from "@atlas/contracts";
 import { Database } from "@atlas/database";
 
 function assertVector(vector: number[], dimensions: number, label: string) {
@@ -36,16 +36,18 @@ export class PgVectorSemanticRepository implements SemanticRepository {
     );
   }
 
-  async search(request: SemanticSearchRequest, queryVector: number[], embeddingModel: string): Promise<SemanticSearchResponse> {
+  async search(request: SemanticSearchRequest, queryVector: number[], selector: EmbeddingSelector): Promise<SemanticSearchResponse> {
     if (!Number.isInteger(request.topK) || request.topK <= 0) throw new Error("INVALID_TOP_K");
     if (!request.organizationId || !request.projectId) throw new Error("TENANT_SCOPE_REQUIRED");
-    if (!queryVector.length || !queryVector.every(Number.isFinite)) throw new Error("QUERY_VECTOR_INVALID");
+    if (!Number.isInteger(selector.dimensions) || selector.dimensions <= 0) throw new Error("INVALID_EMBEDDING_DIMENSIONS");
+    assertVector(queryVector, selector.dimensions, "QUERY_VECTOR");
 
-    const typeFilter = request.objectTypes.length ? "AND o.object_type = ANY($5::text[])" : "";
-    const values: unknown[] = [request.organizationId, request.projectId, `[${queryVector.join(",")}]`, request.topK];
-    if (request.objectTypes.length) values.push(request.objectTypes, embeddingModel);
-    else values.push(embeddingModel);
-    const modelParam = request.objectTypes.length ? "$6" : "$5";
+    const typeFilter = request.objectTypes.length ? "AND o.object_type = ANY($9::text[])" : "";
+    const values: unknown[] = [
+      request.organizationId, request.projectId, `[${queryVector.join(",")}]`, request.topK,
+      selector.provider, selector.model, selector.version, selector.dimensions,
+    ];
+    if (request.objectTypes.length) values.push(request.objectTypes);
 
     const rows = await this.db.query<any>(
       `SELECT o.id, o.organization_id, o.project_id, o.object_type, o.source_id, o.content,
@@ -54,8 +56,10 @@ export class PgVectorSemanticRepository implements SemanticRepository {
        FROM atlas_semantic_objects o
        JOIN atlas_semantic_embeddings e
          ON e.object_id=o.id
-        AND e.model=${modelParam}
-        AND e.dimensions=cardinality(string_to_array(trim(both '[]' from e.embedding::text), ','))
+        AND e.provider=$5
+        AND e.model=$6
+        AND e.version=$7
+        AND e.dimensions=$8
        WHERE o.organization_id=$1 AND o.project_id=$2 ${typeFilter}
        ORDER BY e.embedding <=> $3::vector
        LIMIT $4`,
@@ -63,7 +67,7 @@ export class PgVectorSemanticRepository implements SemanticRepository {
     );
 
     return {
-      embeddingModel,
+      embeddingModel: `${selector.provider}/${selector.model}@${selector.version}`,
       results: rows.map((row, index) => ({
         object: {
           id: row.id, organizationId: row.organization_id, projectId: row.project_id,
@@ -72,7 +76,7 @@ export class PgVectorSemanticRepository implements SemanticRepository {
           metadata: row.metadata ?? {}, createdAt: row.created_at?.toISOString?.(),
         },
         similarity: Number(row.similarity), rank: index + 1,
-        provenance: { repository: "postgres-pgvector", embeddingModel },
+        provenance: { repository: "postgres-pgvector", embeddingProvider: selector.provider, embeddingModel: selector.model, embeddingVersion: selector.version, dimensions: selector.dimensions },
       })),
     };
   }
