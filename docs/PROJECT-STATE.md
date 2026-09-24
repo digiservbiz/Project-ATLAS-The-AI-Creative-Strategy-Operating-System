@@ -1,7 +1,7 @@
 # ATLAS Project State
 
 **Project:** ATLAS — AI Creative Strategy Operating System  
-**Version:** 0.9.5 — Deterministic Vertical Slice Failure Hunting  
+**Version:** 0.9.6 — Tenant-Scoped Artifact Lineage  
 **Status:** Active development  
 **Development branch:** `dev`  
 **Stable branch:** `main`
@@ -40,7 +40,7 @@ Next Action
   ↺
 ```
 
-This deterministic loop is now represented in `packages/vertical-slice` so the architecture can be exercised as one scenario before real providers/connectors are introduced.
+This deterministic loop is represented in `packages/vertical-slice` so the architecture can be exercised as one scenario before real providers/connectors are introduced.
 
 ## Engineering progress
 ### SIEL v1 foundation — implemented
@@ -49,6 +49,15 @@ This deterministic loop is now represented in `packages/vertical-slice` so the a
 - provider/model/version lineage
 - deterministic local development embedding provider
 - provider-neutral embedding/repository contracts
+
+### Artifact lineage + tenant boundary — implemented
+- shared `ArtifactLineage` contract
+- run, organization, project, stage, artifact and parent-artifact identifiers
+- timestamp and provenance metadata
+- same-tenant invariant across organization and project
+- vertical-slice stage artifact chain covering all eight stages
+- explicit cross-tenant isolation tests
+- lineage dependency wired into the vertical-slice package
 
 ### Deterministic vertical slice — implemented
 `packages/vertical-slice` now contains:
@@ -65,7 +74,8 @@ This deterministic loop is now represented in `packages/vertical-slice` so the a
 - Next-best-action generation
 - Explicit failure events
 - Controlled scenario overrides for deterministic failure injection
-- Full happy-path test plus stage-by-stage failure-hunting tests
+- Stage artifact lineage and tenant/project propagation
+- Full happy-path and stage-by-stage failure-hunting tests
 
 The scenario is deliberately deterministic: fixed IDs, fixed performance numbers and fixed learning timestamp. It is a test harness, not a production execution path.
 
@@ -81,6 +91,8 @@ Current tests intentionally break these boundaries:
 8. Impossible performance metrics → `IMPOSSIBLE_CLICK_VOLUME` / conversion-volume validation
 9. Insufficient learning evidence → `INSUFFICIENT_LEARNING_EVIDENCE`
 10. Missing next action → `NO_NEXT_ACTION`
+11. Cross-tenant artifact relationship → `TENANT_SCOPE_VIOLATION`
+12. Broken parent-artifact relationship → `ARTIFACT_LINEAGE_BROKEN`
 
 A failure identifies the stage, stable error code, message and severity. Silent degradation is not acceptable.
 
@@ -93,7 +105,7 @@ pnpm --filter @atlas/vertical-slice typecheck
 pnpm --filter @atlas/vertical-slice build
 ```
 
-The suite is authored but has **not been executed in this ChatGPT environment** because the repository runtime was previously unable to reach GitHub/network resources. Treat it as unverified until run locally or in GitHub Actions.
+The suite is authored but has **not been executed in this ChatGPT environment**. Treat it as unverified until run locally or in GitHub Actions.
 
 ## Evidence discipline
 Public ad libraries and creative-intelligence sources are market-observation inputs. They do not automatically provide verified conversion performance.
@@ -117,6 +129,7 @@ Only authorized/publicly accessible data may be used, subject to platform terms,
 - `@atlas/vertical-slice`
 - PostgreSQL + pgvector foundation.
 - Durable workflow store boundary.
+- Tenant-scoped artifact lineage foundation.
 
 ## Initial specialists
 1. `product-research@1.0.0`
@@ -128,7 +141,7 @@ Only authorized/publicly accessible data may be used, subject to platform terms,
 
 ## Not yet implemented
 - Production embedding provider
-- Retrieval evaluation fixtures beyond the deterministic vertical slice
+- Retrieval evaluation fixtures against a real repository
 - CCIE source connectors
 - AI media-generation gateway/providers
 - Full durable artifact persistence implementation
@@ -149,22 +162,23 @@ Only authorized/publicly accessible data may be used, subject to platform terms,
 - Paid execution has an explicit human-approval boundary by default.
 - Generated assets retain lineage, provider/model metadata, QA results, and rights metadata.
 - Public market intelligence must not be represented as verified campaign performance.
-- The deterministic vertical slice is the current integration contract before live connectors are allowed to drive the loop.
+- Every vertical-slice stage now carries tenant/project/run lineage.
+- The deterministic vertical slice remains the integration contract before live connectors are allowed to drive the loop.
 
 ## Continuity protocol
 At every major milestone update this file with version/phase, completed work, active work, decisions, open questions, known issues, and next sequence.
 
 ## Next sequence
-1. Run the deterministic failure-hunting suite locally/CI and fix real failures.
-2. Add artifact lineage envelopes and tenant-scope invariants.
-3. Add SIEL retrieval evaluation fixtures and tests.
-4. Add a production embedding adapter behind `EmbeddingProvider`.
-5. Finish PDR architecture sections for memory/RAG, integrations, API, security, observability and evaluation.
-6. Implement CCIE connector contracts and normalized creative ingestion.
-7. Implement media generation adapters.
-8. Implement PostgreSQL repositories + durable WorkflowStore.
-9. Complete live Claude integration.
-10. Replace deterministic strategy/execution stages with real artifact-passing agents while preserving the same contracts.
-11. Add authorized Meta/TikTok/Google performance connectors and approval-controlled execution.
-12. Run end-to-end evaluation.
-13. Add API, Skills/MCP and dashboard foundations.
+1. Add SIEL retrieval evaluation fixtures using the embedding/repository contracts.
+2. Harden pgvector repository validation: vector dimensions, finite values, and provider/model/version matching.
+3. Add a production embedding adapter behind `EmbeddingProvider`.
+4. Finish PDR architecture sections for memory/RAG, integrations, API, security, observability and evaluation.
+5. Implement CCIE connector contracts and normalized creative ingestion.
+6. Implement media generation adapters.
+7. Implement PostgreSQL repositories + durable WorkflowStore and artifact persistence.
+8. Complete live Claude integration.
+9. Replace deterministic strategy/execution stages with real artifact-passing agents while preserving the same contracts.
+10. Add authorized Meta/TikTok/Google performance connectors and approval-controlled execution.
+11. Run end-to-end evaluation.
+12. Add API, Skills/MCP and dashboard foundations.
+13. Prepare the local installation/demo package so the complete core can be tested locally without premature live-ad-platform credentials.
