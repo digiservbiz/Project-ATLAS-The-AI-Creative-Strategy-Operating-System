@@ -1,7 +1,7 @@
 # ATLAS Project State
 
 **Project:** ATLAS — AI Creative Strategy Operating System  
-**Version:** 0.9.6 — Tenant-Scoped Artifact Lineage  
+**Version:** 0.10.0 — Durable Workflow & Artifact Persistence  
 **Status:** Active development  
 **Development branch:** `dev`  
 **Stable branch:** `main`
@@ -128,7 +128,8 @@ Only authorized/publicly accessible data may be used, subject to platform terms,
 - `@atlas/intelligence`
 - `@atlas/vertical-slice`
 - PostgreSQL + pgvector foundation.
-- Durable workflow store boundary.
+- Durable workflow run store boundary with PostgreSQL and in-memory implementations.
+- Durable artifact repository with PostgreSQL and in-memory implementations.
 - Tenant-scoped artifact lineage foundation.
 
 ## Initial specialists
@@ -144,7 +145,10 @@ Only authorized/publicly accessible data may be used, subject to platform terms,
 - Retrieval evaluation fixtures against a real repository
 - CCIE source connectors
 - AI media-generation gateway/providers
-- Full durable artifact persistence implementation
+- Production embedding provider
+- Retrieval evaluation fixtures against a real repository
+- CCIE source connectors
+- AI media-generation gateway/providers
 - Ad-platform connectors/execution
 - Production end-to-end runner with real artifact passing
 - Claude Skills packaging
@@ -175,7 +179,7 @@ At every major milestone update this file with version/phase, completed work, ac
 4. Finish PDR architecture sections for memory/RAG, integrations, API, security, observability and evaluation.
 5. Implement CCIE connector contracts and normalized creative ingestion.
 6. Implement media generation adapters.
-7. Implement PostgreSQL repositories + durable WorkflowStore and artifact persistence.
+7. Build the production end-to-end runner around the durable workflow/artifact stores.
 8. Complete live Claude integration.
 9. Replace deterministic strategy/execution stages with real artifact-passing agents while preserving the same contracts.
 10. Add authorized Meta/TikTok/Google performance connectors and approval-controlled execution.
