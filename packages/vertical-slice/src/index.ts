@@ -266,6 +266,16 @@ export function runDeterministicScenario(
     organizationId: product.organizationId,
     projectId: product.projectId,
     stages,
+    payloadByStage: {
+      product: { ...product },
+      strategy: { ...strategy },
+      "intelligence-decision": { ...intelligence },
+      orchestrator: { ...execution },
+      execution: { ...execution },
+      performance: { ...performance },
+      learning: { ...learning },
+      "next-action": { actions: nextActions },
+    },
   });
 
   return {
