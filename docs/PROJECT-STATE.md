@@ -1,7 +1,7 @@
 # ATLAS Project State
 
 **Project:** ATLAS — AI Creative Strategy Operating System  
-**Version:** 0.10.3 — Artifact-Persistable Vertical Slice  
+**Version:** 0.10.4 — Runnable Local Demo Runner  
 **Status:** Active development  
 **Development branch:** `dev`  
 **Stable branch:** `main`
@@ -40,9 +40,8 @@ Next Action
   ↺
 ```
 
-This deterministic loop is represented in `packages/vertical-slice` so the architecture can be exercised as one scenario before real providers/connectors are introduced.
-
 ## Engineering progress
+
 ### SIEL v1 foundation — implemented
 - pgvector semantic object and embedding persistence
 - tenant/project scoped retrieval
@@ -57,10 +56,17 @@ This deterministic loop is represented in `packages/vertical-slice` so the archi
 - same-tenant invariant across organization and project
 - vertical-slice stage artifact chain covering all eight stages
 - explicit cross-tenant isolation tests
-- lineage dependency wired into the vertical-slice package
+- durable PostgreSQL and in-memory artifact repositories
+
+### Durable workflow foundation — implemented
+- workflow run persistence contract
+- PostgreSQL and in-memory workflow stores
+- incremental completed-step/output persistence
+- runtime exception persistence
+- workflow scope mismatch persistence
 
 ### Deterministic vertical slice — implemented
-`packages/vertical-slice` now contains:
+`packages/vertical-slice` contains:
 - Product input contract
 - Strategy hypothesis generation
 - Strategy confidence gate
@@ -75,9 +81,21 @@ This deterministic loop is represented in `packages/vertical-slice` so the archi
 - Explicit failure events
 - Controlled scenario overrides for deterministic failure injection
 - Stage artifact lineage and tenant/project propagation
-- Full happy-path and stage-by-stage failure-hunting tests
+- Real stage payloads attached to artifacts
+- Persistable artifact mapper
 
-The scenario is deliberately deterministic: fixed IDs, fixed performance numbers and fixed learning timestamp. It is a test harness, not a production execution path.
+### Runnable local demo — implemented
+New `@atlas/demo-runner` package:
+- runs the complete deterministic Product → Next Action loop
+- validates the artifact chain
+- persists all eight stage artifacts into the in-memory repository
+- persists a workflow run record
+- exposes a stable programmatic `runDemo()` entry point
+- includes CLI output for local smoke testing
+- includes happy-path, failure, and tenant-isolation tests
+- root command: `pnpm demo`
+
+The demo is intentionally credential-free and uses in-memory persistence. It is the first local integration harness before PostgreSQL and live providers are required.
 
 ## Failure-hunting matrix
 Current tests intentionally break these boundaries:
@@ -100,12 +118,15 @@ A failure identifies the stage, stable error code, message and severity. Silent 
 From repository root:
 
 ```bash
-pnpm --filter @atlas/vertical-slice test
-pnpm --filter @atlas/vertical-slice typecheck
-pnpm --filter @atlas/vertical-slice build
+pnpm --filter @atlas/demo-runner test
+pnpm --filter @atlas/demo-runner typecheck
+pnpm demo
+pnpm typecheck
+pnpm test
+pnpm build
 ```
 
-The suite is authored but has **not been executed in this ChatGPT environment**. Treat it as unverified until run locally or in GitHub Actions.
+The suites are authored but have **not been executed in this ChatGPT environment**. Treat them as unverified until run locally or in GitHub Actions.
 
 ## Evidence discipline
 Public ad libraries and creative-intelligence sources are market-observation inputs. They do not automatically provide verified conversion performance.
@@ -127,6 +148,7 @@ Only authorized/publicly accessible data may be used, subject to platform terms,
 - `@atlas/evaluation`
 - `@atlas/intelligence`
 - `@atlas/vertical-slice`
+- `@atlas/demo-runner`
 - PostgreSQL + pgvector foundation.
 - Durable workflow run store boundary with PostgreSQL and in-memory implementations.
 - Durable artifact repository with PostgreSQL and in-memory implementations.
@@ -145,12 +167,8 @@ Only authorized/publicly accessible data may be used, subject to platform terms,
 - Retrieval evaluation fixtures against a real repository
 - CCIE source connectors
 - AI media-generation gateway/providers
-- Production embedding provider
-- Retrieval evaluation fixtures against a real repository
-- CCIE source connectors
-- AI media-generation gateway/providers
 - Ad-platform connectors/execution
-- Production end-to-end runner with real artifact passing
+- Production end-to-end runner with real artifact passing through `AgentRuntime`
 - Claude Skills packaging
 - MCP tools
 - REST API
@@ -166,23 +184,25 @@ Only authorized/publicly accessible data may be used, subject to platform terms,
 - Paid execution has an explicit human-approval boundary by default.
 - Generated assets retain lineage, provider/model metadata, QA results, and rights metadata.
 - Public market intelligence must not be represented as verified campaign performance.
-- Every vertical-slice stage now carries tenant/project/run lineage.
+- Every vertical-slice stage carries tenant/project/run lineage.
 - The deterministic vertical slice remains the integration contract before live connectors are allowed to drive the loop.
+- The local demo runner is credential-free and is the first integration smoke-test surface.
 
 ## Continuity protocol
 At every major milestone update this file with version/phase, completed work, active work, decisions, open questions, known issues, and next sequence.
 
 ## Next sequence
-1. Add SIEL retrieval evaluation fixtures using the embedding/repository contracts.
-2. Harden pgvector repository validation: vector dimensions, finite values, and provider/model/version matching.
-3. Add a production embedding adapter behind `EmbeddingProvider`.
-4. Finish PDR architecture sections for memory/RAG, integrations, API, security, observability and evaluation.
-5. Implement CCIE connector contracts and normalized creative ingestion.
-6. Implement media generation adapters.
-7. Build the production end-to-end runner around the durable workflow/artifact stores.
-8. Complete live Claude integration.
-9. Replace deterministic strategy/execution stages with real artifact-passing agents while preserving the same contracts.
-10. Add authorized Meta/TikTok/Google performance connectors and approval-controlled execution.
-11. Run end-to-end evaluation.
-12. Add API, Skills/MCP and dashboard foundations.
-13. Prepare the local installation/demo package so the complete core can be tested locally without premature live-ad-platform credentials.
+1. Wire the demo runner to the durable `WorkflowEngine` contract rather than only recording the final workflow state.
+2. Add a minimal local REST API with `/health`, create-demo-run, and get-demo-run endpoints.
+3. Add API/demo integration tests.
+4. Add SIEL retrieval evaluation fixtures using the embedding/repository contracts.
+5. Harden pgvector repository validation and add real repository tests where PostgreSQL is available.
+6. Add a production embedding adapter behind `EmbeddingProvider`.
+7. Finish memory/RAG, integrations, API, security, observability and evaluation PDR sections.
+8. Implement CCIE connector contracts and normalized creative ingestion.
+9. Implement media generation adapters.
+10. Replace deterministic strategy/execution stages with real artifact-passing agents while preserving the same contracts.
+11. Add authorized Meta/TikTok/Google performance connectors and approval-controlled execution.
+12. Run end-to-end evaluation.
+13. Add Claude Skills/MCP and dashboard foundations.
+14. Prepare deployment and local installation documentation.
