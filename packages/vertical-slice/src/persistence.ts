@@ -1,6 +1,5 @@
-import type { ArtifactLineage } from "@atlas/contracts";
+import type { ArtifactLineage, VerticalSliceResult } from "./index.js";
 import { assertSameTenant, artifactLineageSchema } from "@atlas/contracts";
-import type { VerticalSliceResult } from "@atlas/vertical-slice";
 import type { ArtifactRepository, PersistedArtifact } from "@atlas/persistence";
 
 export interface VerticalSliceArtifactMapper {
