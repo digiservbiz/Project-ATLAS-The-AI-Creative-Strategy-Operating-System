@@ -41,7 +41,7 @@ describe("ATLAS demo runner", () => {
   it("keeps persisted artifacts tenant-scoped", async () => {
     const run = await runDemo();
 
-    await expect(run.artifactRepository.getById("product:scenario:product-to-learning-001", {
+    await expect(run.artifactRepository.getById("scenario:product-to-learning-001:product", {
       organizationId: "org:other",
       projectId: "project:other",
     })).rejects.toThrow("TENANT_SCOPE_VIOLATION");
