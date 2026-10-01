@@ -182,10 +182,42 @@ export class WorkflowEngine {
         step.input.context.organizationId !== scope.organizationId ||
         step.input.context.projectId !== scope.projectId
       ) {
-        throw new Error("WORKFLOW_SCOPE_MISMATCH");
+        const error = new Error("WORKFLOW_SCOPE_MISMATCH");
+        if (this.store) {
+          await this.store.update(runId, scope, {
+            status: "failed",
+            completedSteps,
+            outputs: {
+              ...outputs,
+              [step.stepId]: {
+                status: "failed",
+                result: {},
+                warnings: [error.message],
+              },
+            },
+          });
+        }
+        throw error;
       }
 
-      const result = await this.runtime.execute(step.input);
+      let result: AgentResult;
+      try {
+        result = await this.runtime.execute(step.input);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "AGENT_RUNTIME_ERROR";
+        result = {
+          status: "failed",
+          result: {},
+          warnings: [message],
+        };
+        outputs[step.stepId] = result;
+        if (this.store) await this.store.update(runId, scope, {
+          status: "failed",
+          completedSteps,
+          outputs,
+        });
+        return { status: "failed", completedSteps, outputs };
+      }
       outputs[step.stepId] = result;
 
       if (result.status !== "completed") {
