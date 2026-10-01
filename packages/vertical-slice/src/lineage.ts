@@ -12,6 +12,7 @@ export function buildStageArtifactChain(input: {
   organizationId: string;
   projectId: string;
   stages: string[];
+  payloadByStage?: Record<string, Record<string, unknown>>;
 }): StageArtifact[] {
   let parent: StageArtifact | undefined;
   return input.stages.map((stage, index) => {
@@ -25,7 +26,7 @@ export function buildStageArtifactChain(input: {
       parentArtifactId: parent?.artifactId ?? null,
       createdAt: "2026-01-15T00:00:00.000Z",
       provenance: { producer: "deterministic-vertical-slice", stageIndex: index },
-      payload: {},
+      payload: input.payloadByStage?.[stage] ?? {},
     };
 
     if (parent) assertParentArtifact(artifact, parent);
