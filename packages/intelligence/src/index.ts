@@ -26,4 +26,5 @@ export * from "./postgres-intelligence-repository";
 export * from "./semantic-intelligence-projector";
 export * from "./tenant-authorization";
 export * from "./local-hash-embedding";
+export * from "./http-embedding-provider";
 export * from "./pgvector-repository";
