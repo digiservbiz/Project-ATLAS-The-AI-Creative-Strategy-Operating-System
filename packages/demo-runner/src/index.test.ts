@@ -9,6 +9,8 @@ describe("ATLAS demo runner", () => {
     expect(run.summary.stages).toHaveLength(8);
     expect(run.summary.artifactCount).toBe(8);
     expect(run.summary.persistedArtifactCount).toBe(8);
+    expect(run.summary.workflow.status).toBe("needs_review");
+    expect(run.summary.workflow.completedSteps).toHaveLength(8);
 
     const artifacts = await run.artifactRepository.listRun(run.summary.runId, {
       organizationId: "org:atlas-demo",
@@ -23,7 +25,7 @@ describe("ATLAS demo runner", () => {
     )).toBe(true);
   });
 
-  it("persists a failed scenario without losing the workflow record", async () => {
+  it("persists a failed scenario at the failing workflow stage", async () => {
     const run = await runDemo(undefined, { budgetCents: 0 });
 
     expect(run.summary.status).toBe("failed");
@@ -35,7 +37,7 @@ describe("ATLAS demo runner", () => {
     });
 
     expect(workflow?.status).toBe("failed");
-    expect(workflow?.completedSteps).toHaveLength(8);
+    expect(workflow?.completedSteps).toEqual(["product", "strategy", "intelligence-decision", "orchestrator"]);
   });
 
   it("keeps persisted artifacts tenant-scoped", async () => {
