@@ -8,7 +8,8 @@ import {
   type VerticalSliceResult,
 } from "@atlas/vertical-slice";
 import { InMemoryArtifactRepository } from "@atlas/persistence";
-import { InMemoryWorkflowRunStore, type WorkflowRunRecord } from "@atlas/workflow-engine";
+import type { WorkflowRunRecord } from "@atlas/workflow-engine";
+import { persistDemoWorkflow } from "./workflow.js";
 
 export interface DemoRunSummary {
   runId: string;
@@ -25,7 +26,7 @@ export interface DemoRun {
   result: VerticalSliceResult;
   summary: DemoRunSummary;
   artifactRepository: InMemoryArtifactRepository;
-  workflowStore: InMemoryWorkflowRunStore;
+  workflowStore: Awaited<ReturnType<typeof persistDemoWorkflow>>["store"];
 }
 
 export async function runDemo(
@@ -34,37 +35,9 @@ export async function runDemo(
 ): Promise<DemoRun> {
   const result = runDeterministicScenario(product, overrides);
   validateArtifactChain(result.artifacts);
-
   const artifactRepository = new InMemoryArtifactRepository();
   const persistedArtifacts = await persistVerticalSliceResult(result, artifactRepository);
-
-  const workflowStore = new InMemoryWorkflowRunStore();
-  const now = new Date().toISOString();
-  const workflow: WorkflowRunRecord = {
-    runId: result.runId,
-    organizationId: product.organizationId,
-    projectId: product.projectId,
-    status: result.status,
-    completedSteps: result.stages,
-    outputs: {
-      product: { status: "completed", result: result.product, warnings: [] },
-      strategy: { status: "completed", result: result.strategy, warnings: [] },
-      intelligence: { status: "completed", result: result.intelligence, warnings: [] },
-      orchestrator: { status: "completed", result: result.execution, warnings: [] },
-      execution: { status: "completed", result: result.execution, warnings: [] },
-      performance: { status: "completed", result: result.performance, warnings: [] },
-      learning: { status: "completed", result: result.learning, warnings: [] },
-      "next-action": {
-        status: result.status === "failed" ? "failed" : result.status === "needs_review" ? "needs_review" : "completed",
-        result: { actions: result.nextActions },
-        warnings: result.failures.filter((failure) => failure.stage === "next-action").map((failure) => failure.message),
-      },
-    },
-    createdAt: now,
-    updatedAt: now,
-  };
-
-  await workflowStore.create(workflow);
+  const durableWorkflow = await persistDemoWorkflow(result);
 
   return {
     result,
@@ -74,12 +47,12 @@ export async function runDemo(
       stages: result.stages,
       artifactCount: result.artifacts.length,
       persistedArtifactCount: persistedArtifacts.length,
-      workflow,
+      workflow: durableWorkflow.record,
       nextActions: result.nextActions,
       failures: result.failures,
     },
     artifactRepository,
-    workflowStore,
+    workflowStore: durableWorkflow.store,
   };
 }
 
@@ -89,3 +62,5 @@ export async function getPersistedDemoRun(run: DemoRun): Promise<WorkflowRunReco
     projectId: run.result.product.projectId,
   });
 }
+
+export * from "./workflow.js";
