@@ -16,14 +16,12 @@ export class InMemoryWorkflowRunStore implements WorkflowRunStore {
   private readonly data = new Map<string, WorkflowRunRecord>();
   async create(record: WorkflowRunRecord): Promise<void> { if (this.data.has(record.runId)) throw new Error("WORKFLOW_RUN_ALREADY_EXISTS"); this.data.set(record.runId, record); }
   async update(runId: string, scope: Pick<WorkflowRunRecord, "organizationId" | "projectId">, patch: Pick<WorkflowRunResult, "status" | "completedSteps" | "outputs">): Promise<void> {
-    const current = this.data.get(runId);
-    if (!current) throw new Error("WORKFLOW_RUN_NOT_FOUND");
+    const current = this.data.get(runId); if (!current) throw new Error("WORKFLOW_RUN_NOT_FOUND");
     if (current.organizationId !== scope.organizationId || current.projectId !== scope.projectId) throw new Error("TENANT_SCOPE_VIOLATION");
     this.data.set(runId, { ...current, ...patch, updatedAt: new Date().toISOString() });
   }
   async get(runId: string, scope: Pick<WorkflowRunRecord, "organizationId" | "projectId">): Promise<WorkflowRunRecord | null> {
-    const record = this.data.get(runId);
-    if (!record) return null;
+    const record = this.data.get(runId); if (!record) return null;
     if (record.organizationId !== scope.organizationId || record.projectId !== scope.projectId) return null;
     return record;
   }
@@ -76,16 +74,13 @@ export class WorkflowEngine {
     return { status: "failed", result: {}, warnings: [message] };
   }
 
-  async run(steps: readonly WorkflowStep[]): Promise<WorkflowRunResult> {
-    const outputs: Record<string, AgentResult> = {};
-    const completedSteps: string[] = [];
-    if (!steps.length) return { status: "completed", completedSteps, outputs };
-    const first = steps[0].input;
-    const scope = { organizationId: first.context.organizationId, projectId: first.context.projectId };
-    const runId = first.execution.runId;
-    const now = new Date().toISOString();
-    if (this.store) await this.store.create({ runId, ...scope, status: "running", completedSteps: [], outputs: {}, createdAt: now, updatedAt: now });
-
+  private async executeSteps(
+    steps: readonly WorkflowStep[],
+    runId: string,
+    scope: { organizationId: string; projectId: string },
+    outputs: Record<string, AgentResult>,
+    completedSteps: string[],
+  ): Promise<WorkflowRunResult> {
     for (const step of steps) {
       if (step.input.execution.runId !== runId || step.input.context.organizationId !== scope.organizationId || step.input.context.projectId !== scope.projectId) {
         const error = new Error("WORKFLOW_SCOPE_MISMATCH");
@@ -106,6 +101,30 @@ export class WorkflowEngine {
     if (this.store) await this.store.update(runId, scope, finalResult);
     return finalResult;
   }
+
+  async run(steps: readonly WorkflowStep[]): Promise<WorkflowRunResult> {
+    if (!steps.length) return { status: "completed", completedSteps: [], outputs: {} };
+    const first = steps[0].input;
+    const scope = { organizationId: first.context.organizationId, projectId: first.context.projectId };
+    const runId = first.execution.runId;
+    const now = new Date().toISOString();
+    if (this.store) await this.store.create({ runId, ...scope, status: "running", completedSteps: [], outputs: {}, createdAt: now, updatedAt: now });
+    return this.executeSteps(steps, runId, scope, {}, []);
+  }
+
+  async resumeFromCheckpoint(record: WorkflowRunRecord, remainingSteps: readonly WorkflowStep[]): Promise<WorkflowRunResult> {
+    if (!this.store) throw new Error("WORKFLOW_STORE_REQUIRED_FOR_RESUME");
+    if (record.status === "completed" || record.status === "cancelled") throw new Error("WORKFLOW_NOT_RESUMABLE");
+    if (remainingSteps.some((step) => step.input.execution.runId !== record.runId || step.input.context.organizationId !== record.organizationId || step.input.context.projectId !== record.projectId)) {
+      throw new Error("WORKFLOW_RESUME_SCOPE_MISMATCH");
+    }
+    await this.store.update(record.runId, { organizationId: record.organizationId, projectId: record.projectId }, {
+      status: "running", completedSteps: record.completedSteps, outputs: record.outputs,
+    });
+    return this.executeSteps(remainingSteps, record.runId, { organizationId: record.organizationId, projectId: record.projectId }, { ...record.outputs }, [...record.completedSteps]);
+  }
 }
 
 export * from "./retry.js";
+export * from "./events.js";
+export * from "./recovery.js";
