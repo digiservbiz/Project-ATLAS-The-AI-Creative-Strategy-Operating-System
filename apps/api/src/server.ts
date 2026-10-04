@@ -1,10 +1,12 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { createAtlasApplication, type IntelligenceActionsRequest, type AutonomousRunRequest } from "./application.js";
 import { createLocalAtlasComposition } from "./local-composition.js";
+import { runDemo, type DemoRun } from "@atlas/demo-runner";
 
 const port = Number(process.env.PORT ?? 3000);
 const localComposition = createLocalAtlasComposition();
 const application = createAtlasApplication({ autonomousLoop: localComposition.autonomousLoop });
+const demoRuns = new Map<string, DemoRun>();
 
 function json(response: ServerResponse, status: number, body: unknown): void {
   response.writeHead(status, { "content-type": "application/json; charset=utf-8" });
@@ -33,6 +35,33 @@ async function handler(request: IncomingMessage, response: ServerResponse): Prom
       mode: "safe-local",
       externalActions: false,
     });
+    return;
+  }
+
+  if (request.method === "POST" && url.pathname === "/v1/demo/runs") {
+    try {
+      const raw = await readBody(request);
+      const body = (raw ? JSON.parse(raw) : {}) as {
+        product?: Parameters<typeof runDemo>[0];
+        overrides?: Parameters<typeof runDemo>[1];
+      };
+      const run = await runDemo(body.product, body.overrides);
+      demoRuns.set(run.summary.runId, run);
+      json(response, 201, run.summary);
+    } catch (error) {
+      json(response, 400, { error: error instanceof Error ? error.message : "Invalid demo request" });
+    }
+    return;
+  }
+
+  const demoMatch = url.pathname.match(/^\/v1\/demo\/runs\/([^/]+)$/);
+  if (request.method === "GET" && demoMatch) {
+    const run = demoRuns.get(decodeURIComponent(demoMatch[1]));
+    if (!run) {
+      json(response, 404, { error: "RUN_NOT_FOUND" });
+      return;
+    }
+    json(response, 200, run.summary);
     return;
   }
 
