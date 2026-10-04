@@ -1,7 +1,7 @@
 # ATLAS Project State
 
 **Project:** ATLAS — AI Creative Strategy Operating System  
-**Version:** 0.11.0 — Workflow-Engine Demo + Local REST API  
+**Version:** 0.12.0 — SIEL Validation + CCIE Intelligence Core  
 **Status:** Active development  
 **Development branch:** `dev`  
 **Stable branch:** `main`
@@ -24,6 +24,10 @@ Product → Strategy → Intelligence Decision → Orchestrator → Execution �
 ## Completed foundation
 - Provider-neutral contracts and model gateway foundation.
 - SIEL pgvector persistence, embedding identity and deterministic local embedding provider.
+- Production HTTP embedding adapter with runtime API-key configuration and vector validation.
+- SIEL embedding-provider and pgvector retrieval validation fixtures.
+- Tenant/project/provider/model/version/dimension-aware semantic retrieval.
+- Intelligence-record → semantic-object projection with provenance metadata.
 - Tenant/project/run-scoped artifact lineage.
 - PostgreSQL and in-memory artifact repositories.
 - PostgreSQL and in-memory durable workflow stores.
@@ -33,6 +37,8 @@ Product → Strategy → Intelligence Decision → Orchestrator → Execution �
 - Credential-free demo runner.
 - Demo runner now executes its workflow through AgentRuntime + WorkflowEngine.
 - Local REST API now exposes the demo loop.
+- CCIE deterministic creative concept analysis with evidence IDs and explicit performance caveats.
+- Authorized creative-source registry with organization-scope filtering.
 
 ## Runnable local surface
 Root:
@@ -52,6 +58,8 @@ The local API is safe-local: no external ad spend or publishing is performed.
 
 ## Test commands
 ```bash
+pnpm --filter @atlas/intelligence test
+pnpm --filter @atlas/intelligence typecheck
 pnpm --filter @atlas/demo-runner test
 pnpm --filter @atlas/demo-runner typecheck
 pnpm --filter @atlas/api typecheck
@@ -64,18 +72,17 @@ pnpm build
 Tests are authored but remain unverified in this ChatGPT environment because the repository cannot be fully installed/executed here. GitHub Actions or local execution must be used for definitive pass/fail status.
 
 ## Not yet production-complete
-- Production embedding provider
-- Real SIEL retrieval evaluation against PostgreSQL
-- CCIE source connectors and normalized ingestion
-- Media generation adapters
-- Real ad-platform connectors/execution
-- Production artifact-passing specialists replacing deterministic demo agents
-- Claude production integration
-- MCP/Skills
-- persistent API storage/authentication
-- observability/queues/recovery
-- frontend/dashboard
-- deployment hardening
+- Real SIEL retrieval evaluation against a live PostgreSQL/pgvector instance.
+- CCIE live/authorized platform connectors and normalized ingestion adapters.
+- Media generation adapters.
+- Real ad-platform connectors/execution.
+- Production artifact-passing specialists replacing deterministic demo agents.
+- Claude production integration.
+- MCP/Skills.
+- Persistent API storage/authentication.
+- Observability/queues/recovery.
+- Frontend/dashboard.
+- Deployment hardening.
 
 ## Safety/architecture decisions
 - PostgreSQL is transactional source of truth; pgvector is semantic retrieval.
@@ -84,17 +91,18 @@ Tests are authored but remain unverified in this ChatGPT environment because the
 - Public market observation is never represented as verified first-party performance.
 - Every stage carries organization/project/run lineage.
 - Local demo execution performs no external spend or publishing.
+- CCIE evidence is provenance-first; observed creative presence is not treated as proof of performance.
 
 ## Next sequence
-1. Execute the complete repository CI and fix any compile/test failures.
-2. Add API integration tests to CI.
-3. Add SIEL retrieval fixtures and PostgreSQL test path.
-4. Implement production embedding adapter.
-5. Implement CCIE ingestion/connectors.
-6. Implement production artifact-passing agents.
-7. Add Claude provider and evaluation controls.
-8. Add persistent authenticated API.
-9. Add Meta/TikTok/Google connectors with approval gates.
+1. Execute complete repository CI and fix compile/test failures.
+2. Add API integration tests and CI coverage.
+3. Add a live PostgreSQL/pgvector integration harness.
+4. Add authorized CCIE ingestion adapters and normalization.
+5. Replace deterministic demo agents with artifact-consuming specialist agents.
+6. Add Claude/model-provider gateway and evaluation controls.
+7. Add media-generation gateway.
+8. Add Meta/TikTok/Google connectors with approval gates.
+9. Add persistent authenticated API.
 10. Build dashboard.
 11. Add deployment, observability, queue/recovery and security hardening.
 12. Run full end-to-end evaluation.
