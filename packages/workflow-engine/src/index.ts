@@ -1,10 +1,17 @@
-import type { ExecutionEnvelope } from "@atlas/contracts";
+import { assertWorkflowArtifactHandoff, type ExecutionEnvelope, type WorkflowArtifactHandoff } from "@atlas/contracts";
 import type { AgentRuntime, AgentResult } from "@atlas/agent-runtime";
 import { Database } from "@atlas/database";
 import { DEFAULT_RETRY_POLICY, isRetryableError, retryDelayMs, type RetryPolicy } from "./retry.js";
 import { event, type WorkflowEventStore } from "./events.js";
 
-export interface WorkflowStep { stepId: string; agentId: string; agentVersion: string; input: ExecutionEnvelope; }
+export interface WorkflowStep {
+  stepId: string;
+  agentId: string;
+  agentVersion: string;
+  input: ExecutionEnvelope;
+  artifactHandoff?: WorkflowArtifactHandoff;
+  requiresArtifactHandoff?: boolean;
+}
 export interface WorkflowRunResult { status: "completed" | "needs_review" | "blocked" | "failed"; completedSteps: string[]; outputs: Record<string, AgentResult>; }
 export interface WorkflowRunRecord extends WorkflowRunResult { runId: string; organizationId: string; projectId: string; createdAt: string; updatedAt: string; }
 export interface WorkflowRunStore {
@@ -68,27 +75,26 @@ export class WorkflowEngine {
     await this.eventStore.append(event(runId, scope.organizationId, scope.projectId, type, stepId, attempt, payload));
   }
 
+  private prepareStep(step: WorkflowStep): ExecutionEnvelope {
+    const requires = step.requiresArtifactHandoff ?? Boolean(step.artifactHandoff);
+    if (!requires) return step.input;
+    if (!step.artifactHandoff) throw new Error("ARTIFACT_HANDOFF_REQUIRED");
+    const handoff = assertWorkflowArtifactHandoff(step.artifactHandoff);
+    if (handoff.sourceArtifactId === step.stepId) throw new Error("ARTIFACT_HANDOFF_SELF_REFERENCE");
+    return { ...step.input, inputs: { ...step.input.inputs, artifactHandoff: handoff } };
+  }
+
   private async executeWithRetry(input: ExecutionEnvelope): Promise<AgentResult> {
     let lastError: unknown;
     for (let attempt = 1; attempt <= this.retryPolicy.maxAttempts; attempt++) {
       try { return await this.runtime.execute({ ...input, execution: { ...input.execution, attempt } }); }
-      catch (error) {
-        lastError = error;
-        if (!isRetryableError(error) || attempt === this.retryPolicy.maxAttempts) break;
-        await this.sleep(retryDelayMs(this.retryPolicy, attempt));
-      }
+      catch (error) { lastError = error; if (!isRetryableError(error) || attempt === this.retryPolicy.maxAttempts) break; await this.sleep(retryDelayMs(this.retryPolicy, attempt)); }
     }
     const message = lastError instanceof Error ? lastError.message : "AGENT_RUNTIME_ERROR";
     return { status: "failed", result: {}, warnings: [message] };
   }
 
-  private async executeSteps(
-    steps: readonly WorkflowStep[],
-    runId: string,
-    scope: { organizationId: string; projectId: string },
-    outputs: Record<string, AgentResult>,
-    completedSteps: string[],
-  ): Promise<WorkflowRunResult> {
+  private async executeSteps(steps: readonly WorkflowStep[], runId: string, scope: { organizationId: string; projectId: string }, outputs: Record<string, AgentResult>, completedSteps: string[]): Promise<WorkflowRunResult> {
     for (const step of steps) {
       if (step.input.execution.runId !== runId || step.input.context.organizationId !== scope.organizationId || step.input.context.projectId !== scope.projectId) {
         const error = new Error("WORKFLOW_SCOPE_MISMATCH");
@@ -96,24 +102,31 @@ export class WorkflowEngine {
         await this.emit(runId, scope, "run_failed", step.stepId, null, { code: error.message });
         throw error;
       }
-
+      let input: ExecutionEnvelope;
+      try { input = this.prepareStep(step); }
+      catch (error) {
+        const message = error instanceof Error ? error.message : "ARTIFACT_HANDOFF_INVALID";
+        const blocked: AgentResult = { status: "blocked", result: {}, warnings: [message] };
+        outputs[step.stepId] = blocked;
+        if (this.store) await this.store.update(runId, scope, { status: "blocked", completedSteps, outputs });
+        await this.emit(runId, scope, "step_blocked", step.stepId, null, { code: message });
+        await this.emit(runId, scope, "run_failed", step.stepId, null, { status: "blocked", code: message });
+        return { status: "blocked", completedSteps, outputs };
+      }
       await this.emit(runId, scope, "step_started", step.stepId, 1, { agentId: step.agentId, agentVersion: step.agentVersion });
-      const result = await this.executeWithRetry(step.input);
+      const result = await this.executeWithRetry(input);
       outputs[step.stepId] = result;
-
       if (result.status !== "completed") {
         if (this.store) await this.store.update(runId, scope, { status: result.status, completedSteps, outputs });
         const terminalType = result.status === "blocked" ? "step_blocked" : "step_failed";
-        await this.emit(runId, scope, terminalType, step.stepId, step.input.execution.attempt, { status: result.status, warnings: result.warnings });
-        await this.emit(runId, scope, result.status === "needs_review" ? "run_needs_review" : "run_failed", step.stepId, step.input.execution.attempt, { status: result.status });
+        await this.emit(runId, scope, terminalType, step.stepId, input.execution.attempt, { status: result.status, warnings: result.warnings });
+        await this.emit(runId, scope, result.status === "needs_review" ? "run_needs_review" : "run_failed", step.stepId, input.execution.attempt, { status: result.status });
         return { status: result.status, completedSteps, outputs };
       }
-
       completedSteps.push(step.stepId);
-      await this.emit(runId, scope, "step_succeeded", step.stepId, step.input.execution.attempt, { status: result.status });
+      await this.emit(runId, scope, "step_succeeded", step.stepId, input.execution.attempt, { status: result.status });
       if (this.store) await this.store.update(runId, scope, { status: "running", completedSteps, outputs });
     }
-
     const finalResult = { status: "completed" as const, completedSteps, outputs };
     if (this.store) await this.store.update(runId, scope, finalResult);
     await this.emit(runId, scope, "run_completed", null, null, { completedSteps: [...completedSteps] });
@@ -134,12 +147,8 @@ export class WorkflowEngine {
   async resumeFromCheckpoint(record: WorkflowRunRecord, remainingSteps: readonly WorkflowStep[]): Promise<WorkflowRunResult> {
     if (!this.store) throw new Error("WORKFLOW_STORE_REQUIRED_FOR_RESUME");
     if (record.status === "completed" || record.status === "cancelled") throw new Error("WORKFLOW_NOT_RESUMABLE");
-    if (remainingSteps.some((step) => step.input.execution.runId !== record.runId || step.input.context.organizationId !== record.organizationId || step.input.context.projectId !== record.projectId)) {
-      throw new Error("WORKFLOW_RESUME_SCOPE_MISMATCH");
-    }
-    await this.store.update(record.runId, { organizationId: record.organizationId, projectId: record.projectId }, {
-      status: "running", completedSteps: record.completedSteps, outputs: record.outputs,
-    });
+    if (remainingSteps.some((step) => step.input.execution.runId !== record.runId || step.input.context.organizationId !== record.organizationId || step.input.context.projectId !== record.projectId)) throw new Error("WORKFLOW_RESUME_SCOPE_MISMATCH");
+    await this.store.update(record.runId, { organizationId: record.organizationId, projectId: record.projectId }, { status: "running", completedSteps: record.completedSteps, outputs: record.outputs });
     return this.executeSteps(remainingSteps, record.runId, { organizationId: record.organizationId, projectId: record.projectId }, { ...record.outputs }, [...record.completedSteps]);
   }
 }
