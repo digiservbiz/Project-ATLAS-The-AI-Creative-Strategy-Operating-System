@@ -117,16 +117,8 @@ function buildRuntime(result: VerticalSliceResult): AgentRuntime {
   return new AgentRuntime(registry);
 }
 
-export interface DurableDemoWorkflow {
-  store: InMemoryWorkflowRunStore;
-  record: WorkflowRunRecord;
-}
-
-export async function persistDemoWorkflow(result: VerticalSliceResult): Promise<DurableDemoWorkflow> {
-  const store = new InMemoryWorkflowRunStore();
-  const runtime = buildRuntime(result);
-
-  const steps: WorkflowStep[] = result.stages.map((stage, index) => {
+export function buildDemoWorkflowSteps(result: VerticalSliceResult): WorkflowStep[] {
+  return result.stages.map((stage, index) => {
     const previousArtifact = index > 0 ? result.artifacts[index - 1] : undefined;
     return {
       stepId: stage,
@@ -142,6 +134,17 @@ export async function persistDemoWorkflow(result: VerticalSliceResult): Promise<
       ),
     };
   });
+}
+
+export interface DurableDemoWorkflow {
+  store: InMemoryWorkflowRunStore;
+  record: WorkflowRunRecord;
+}
+
+export async function persistDemoWorkflow(result: VerticalSliceResult): Promise<DurableDemoWorkflow> {
+  const store = new InMemoryWorkflowRunStore();
+  const runtime = buildRuntime(result);
+  const steps = buildDemoWorkflowSteps(result);
 
   const workflowResult = await new WorkflowEngine(runtime, store).run(steps);
   const scope = {
