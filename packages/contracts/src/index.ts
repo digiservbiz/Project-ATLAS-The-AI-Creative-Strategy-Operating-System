@@ -61,3 +61,5 @@ export * from "./artifact-lineage.js";
 export * from "./ccie.js";
 export * from "./intelligence.js";
 export * from "./production-readiness.js";
+export * from "./workflow-events.js";
+export * from "./workflow-artifacts.js";
