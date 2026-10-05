@@ -2,6 +2,7 @@ import type { ExecutionEnvelope } from "@atlas/contracts";
 import type { AgentRuntime, AgentResult } from "@atlas/agent-runtime";
 import { Database } from "@atlas/database";
 import { DEFAULT_RETRY_POLICY, isRetryableError, retryDelayMs, type RetryPolicy } from "./retry.js";
+import { event, type WorkflowEventStore } from "./events.js";
 
 export interface WorkflowStep { stepId: string; agentId: string; agentVersion: string; input: ExecutionEnvelope; }
 export interface WorkflowRunResult { status: "completed" | "needs_review" | "blocked" | "failed"; completedSteps: string[]; outputs: Record<string, AgentResult>; }
@@ -50,14 +51,21 @@ export class PgWorkflowRunStore implements WorkflowRunStore {
   }
 }
 
-export interface WorkflowEngineOptions { retryPolicy?: RetryPolicy; sleep?: (ms: number) => Promise<void>; }
+export interface WorkflowEngineOptions { retryPolicy?: RetryPolicy; sleep?: (ms: number) => Promise<void>; eventStore?: WorkflowEventStore; }
 
 export class WorkflowEngine {
   private readonly retryPolicy: RetryPolicy;
   private readonly sleep: (ms: number) => Promise<void>;
+  private readonly eventStore?: WorkflowEventStore;
   constructor(private readonly runtime: AgentRuntime, private readonly store?: WorkflowRunStore, options: WorkflowEngineOptions = {}) {
     this.retryPolicy = options.retryPolicy ?? DEFAULT_RETRY_POLICY;
     this.sleep = options.sleep ?? ((ms) => new Promise((resolve) => setTimeout(resolve, ms)));
+    this.eventStore = options.eventStore;
+  }
+
+  private async emit(runId: string, scope: { organizationId: string; projectId: string }, type: Parameters<typeof event>[3], stepId: string | null = null, attempt: number | null = null, payload: Record<string, unknown> = {}): Promise<void> {
+    if (!this.eventStore) return;
+    await this.eventStore.append(event(runId, scope.organizationId, scope.projectId, type, stepId, attempt, payload));
   }
 
   private async executeWithRetry(input: ExecutionEnvelope): Promise<AgentResult> {
@@ -85,20 +93,30 @@ export class WorkflowEngine {
       if (step.input.execution.runId !== runId || step.input.context.organizationId !== scope.organizationId || step.input.context.projectId !== scope.projectId) {
         const error = new Error("WORKFLOW_SCOPE_MISMATCH");
         if (this.store) await this.store.update(runId, scope, { status: "failed", completedSteps, outputs: { ...outputs, [step.stepId]: { status: "failed", result: {}, warnings: [error.message] } } });
+        await this.emit(runId, scope, "run_failed", step.stepId, null, { code: error.message });
         throw error;
       }
+
+      await this.emit(runId, scope, "step_started", step.stepId, 1, { agentId: step.agentId, agentVersion: step.agentVersion });
       const result = await this.executeWithRetry(step.input);
       outputs[step.stepId] = result;
+
       if (result.status !== "completed") {
-        const finalResult = { status: result.status, completedSteps, outputs };
-        if (this.store) await this.store.update(runId, scope, finalResult);
-        return finalResult;
+        if (this.store) await this.store.update(runId, scope, { status: result.status, completedSteps, outputs });
+        const terminalType = result.status === "blocked" ? "step_blocked" : "step_failed";
+        await this.emit(runId, scope, terminalType, step.stepId, step.input.execution.attempt, { status: result.status, warnings: result.warnings });
+        await this.emit(runId, scope, result.status === "needs_review" ? "run_needs_review" : "run_failed", step.stepId, step.input.execution.attempt, { status: result.status });
+        return { status: result.status, completedSteps, outputs };
       }
+
       completedSteps.push(step.stepId);
+      await this.emit(runId, scope, "step_succeeded", step.stepId, step.input.execution.attempt, { status: result.status });
       if (this.store) await this.store.update(runId, scope, { status: "running", completedSteps, outputs });
     }
+
     const finalResult = { status: "completed" as const, completedSteps, outputs };
     if (this.store) await this.store.update(runId, scope, finalResult);
+    await this.emit(runId, scope, "run_completed", null, null, { completedSteps: [...completedSteps] });
     return finalResult;
   }
 
@@ -109,6 +127,7 @@ export class WorkflowEngine {
     const runId = first.execution.runId;
     const now = new Date().toISOString();
     if (this.store) await this.store.create({ runId, ...scope, status: "running", completedSteps: [], outputs: {}, createdAt: now, updatedAt: now });
+    await this.emit(runId, scope, "run_created", null, null, { stepCount: steps.length });
     return this.executeSteps(steps, runId, scope, {}, []);
   }
 
