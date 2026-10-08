@@ -1,14 +1,7 @@
 import { AgentRegistry, AgentRuntime, type AgentDefinition, type AgentResult } from "@atlas/agent-runtime";
-import type { ExecutionEnvelope } from "@atlas/contracts";
+import type { ExecutionEnvelope, WorkflowArtifactHandoff } from "@atlas/contracts";
 import { InMemoryWorkflowRunStore, WorkflowEngine, type WorkflowStep, type WorkflowRunRecord } from "@atlas/workflow-engine";
 import type { SliceStage, StageArtifact, VerticalSliceResult } from "@atlas/vertical-slice";
-
-interface ArtifactHandoffInput {
-  sourceArtifactId: string;
-  sourceStage: string;
-  sourceArtifactType: string;
-  payload: Record<string, unknown>;
-}
 
 function envelope(
   runId: string,
@@ -18,15 +11,6 @@ function envelope(
   result: Record<string, unknown>,
   previousArtifact?: StageArtifact,
 ): ExecutionEnvelope {
-  const artifactHandoff: ArtifactHandoffInput | undefined = previousArtifact
-    ? {
-        sourceArtifactId: previousArtifact.artifactId,
-        sourceStage: previousArtifact.stage,
-        sourceArtifactType: previousArtifact.artifactType,
-        payload: previousArtifact.payload,
-      }
-    : undefined;
-
   return {
     execution: {
       runId,
@@ -43,10 +27,7 @@ function envelope(
         ? ["Consume the previous stage artifact before producing this stage output."]
         : ["Initialize the workflow from the supplied product input."],
     },
-    inputs: {
-      stageInput: result,
-      ...(artifactHandoff ? { artifactHandoff } : {}),
-    },
+    inputs: { stageInput: result },
     knowledge: [],
     memory: [],
     tools: [],
@@ -100,6 +81,9 @@ function buildRuntime(result: VerticalSliceResult): AgentRuntime {
               warnings: ["ARTIFACT_HANDOFF_INVALID"],
             };
           }
+          if (source.sourceStage !== result.stages[result.stages.indexOf(stage) - 1]) {
+            return { status: "blocked", result: {}, warnings: ["ARTIFACT_HANDOFF_UPSTREAM_STAGE_MISMATCH"] };
+          }
           if (input.context.organizationId !== result.product.organizationId || input.context.projectId !== result.product.projectId) {
             return {
               status: "blocked",
@@ -132,6 +116,17 @@ export function buildDemoWorkflowSteps(result: VerticalSliceResult): WorkflowSte
         resultFor(result, stage).result,
         previousArtifact,
       ),
+      ...(previousArtifact
+        ? {
+            artifactHandoff: {
+              sourceArtifactId: previousArtifact.artifactId,
+              sourceStage: previousArtifact.stage,
+              sourceArtifactType: previousArtifact.artifactType,
+              payload: previousArtifact.payload,
+            } satisfies WorkflowArtifactHandoff,
+            requiresArtifactHandoff: true,
+          }
+        : {}),
     };
   });
 }
