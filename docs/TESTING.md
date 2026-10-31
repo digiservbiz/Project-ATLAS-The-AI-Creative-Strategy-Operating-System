@@ -54,7 +54,7 @@ pnpm dev
 Send a product brief:
 
 ```bash
-curl -X POST http://localhost:3000/v1/strategy/generate \\
+curl -X POST http://localhost:3000/v1/strategy/generate \
   -H 'content-type: application/json' \\
   -d '{
     "organizationId": "org-local-test",
