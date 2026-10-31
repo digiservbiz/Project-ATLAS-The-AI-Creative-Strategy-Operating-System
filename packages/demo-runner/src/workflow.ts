@@ -81,7 +81,12 @@ function buildRuntime(result: VerticalSliceResult): AgentRuntime {
               warnings: ["ARTIFACT_HANDOFF_INVALID"],
             };
           }
-          if (source.sourceStage !== result.stages[result.stages.indexOf(stage) - 1]) {
+          const expectedUpstreamStage = result.stages[result.stages.indexOf(stage) - 1];
+          if (
+            source.sourceStage !== expectedUpstreamStage ||
+            source.sourceArtifactId !== `${result.runId}:${expectedUpstreamStage}` ||
+            source.sourceArtifactType !== `${expectedUpstreamStage}-artifact`
+          ) {
             return { status: "blocked", result: {}, warnings: ["ARTIFACT_HANDOFF_UPSTREAM_STAGE_MISMATCH"] };
           }
           if (input.context.organizationId !== result.product.organizationId || input.context.projectId !== result.product.projectId) {
