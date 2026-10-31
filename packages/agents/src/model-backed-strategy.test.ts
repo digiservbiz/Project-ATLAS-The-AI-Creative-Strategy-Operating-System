@@ -67,7 +67,7 @@ describe("model-backed creative strategy agent", () => {
 
   it("accepts a JSON fenced response but still validates its structure", async () => {
     const agent = createModelBackedCreativeStrategyAgent({
-      provider: providerReturning(```json\n${JSON.stringify(validStrategy)}\n```),
+      provider: providerReturning(["```json", JSON.stringify(validStrategy), "```"].join("\n")),
       model: "test-model",
     });
 
