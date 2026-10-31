@@ -43,8 +43,12 @@ function resultFor(result: VerticalSliceResult, stage: SliceStage): AgentResult 
     stage === "learning" ? result.learning :
     { actions: result.nextActions };
 
+  const stageFailures = result.failures.filter(
+    (failure) => failure.stage === stage && failure.severity === "error",
+  );
+
   return {
-    status: result.status === "failed" ? "failed" : result.status === "needs_review" && stage === "next-action" ? "needs_review" : "completed",
+    status: stageFailures.length ? "failed" : "completed",
     result: value as Record<string, unknown>,
     warnings: result.failures.filter((failure) => failure.stage === stage).map((failure) => failure.message),
   };
