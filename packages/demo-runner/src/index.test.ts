@@ -12,6 +12,19 @@ describe("ATLAS demo runner", () => {
     expect(run.summary.workflow.status).toBe("needs_review");
     expect(run.summary.workflow.completedSteps).toHaveLength(8);
 
+    const strategyOutput = run.summary.workflow.outputs.strategy.result;
+    expect(strategyOutput.consumedUpstreamArtifactId).toBe("scenario:product-to-learning-001:product");
+    expect(strategyOutput.upstreamArtifact).toMatchObject({
+      stage: "product",
+      payload: { productId: "product:atlas-demo" },
+    });
+
+    const intelligenceOutput = run.summary.workflow.outputs["intelligence-decision"].result;
+    expect(intelligenceOutput.upstreamArtifact).toMatchObject({
+      stage: "strategy",
+      payload: { angle: "problem-solution" },
+    });
+
     const artifacts = await run.artifactRepository.listRun(run.summary.runId, {
       organizationId: "org:atlas-demo",
       projectId: "project:atlas-demo",
