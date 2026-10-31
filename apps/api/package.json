@@ -14,7 +14,11 @@
     "@atlas/automation": "workspace:*",
     "@atlas/demo-runner": "workspace:*",
     "@atlas/intelligence": "workspace:*",
-    "@atlas/orchestrator": "workspace:*"
+    "@atlas/orchestrator": "workspace:*",
+    "@atlas/agents": "workspace:*",
+    "@atlas/agent-runtime": "workspace:*",
+    "@atlas/contracts": "workspace:*",
+    "@atlas/model-gateway": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^24.3.0",
