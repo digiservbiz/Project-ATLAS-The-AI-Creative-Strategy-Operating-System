@@ -119,3 +119,5 @@ export const initialAgents = [
   scriptWriterAgent,
   qaValidatorAgent,
 ] as const;
+
+export * from "./model-backed-strategy.js";
