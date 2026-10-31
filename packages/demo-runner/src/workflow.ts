@@ -1,7 +1,7 @@
 import { AgentRegistry, AgentRuntime, type AgentDefinition, type AgentResult } from "@atlas/agent-runtime";
 import type { ExecutionEnvelope, WorkflowArtifactHandoff } from "@atlas/contracts";
 import { InMemoryWorkflowRunStore, WorkflowEngine, type WorkflowStep, type WorkflowRunRecord } from "@atlas/workflow-engine";
-import type { SliceStage, StageArtifact, VerticalSliceResult } from "@atlas/vertical-slice";
+import type { SliceStage, VerticalSliceResult } from "@atlas/vertical-slice";
 
 function envelope(
   runId: string,
@@ -9,7 +9,6 @@ function envelope(
   projectId: string,
   stage: SliceStage,
   result: Record<string, unknown>,
-  previousArtifact?: StageArtifact,
 ): ExecutionEnvelope {
   return {
     execution: {
@@ -23,9 +22,9 @@ function envelope(
     task: {
       objective: "Execute ATLAS deterministic stage: " + stage,
       constraints: [],
-      instructions: previousArtifact
-        ? ["Consume the previous stage artifact before producing this stage output."]
-        : ["Initialize the workflow from the supplied product input."],
+      instructions: stage === "product"
+        ? ["Initialize the workflow from the supplied product input."]
+        : ["Consume the validated previous stage artifact before producing this stage output."],
     },
     inputs: { stageInput: result },
     knowledge: [],
@@ -64,6 +63,7 @@ function buildRuntime(result: VerticalSliceResult): AgentRuntime {
       riskLevel: stage === "execution" ? "high" : "low",
       allowedTools: [],
       execute: async (input) => {
+        let upstreamArtifact: { artifactId: string; stage: string; artifactType: string; payload: Record<string, unknown> } | undefined;
         if (stage !== "product") {
           const handoff = input.inputs.artifactHandoff;
           if (!handoff || typeof handoff !== "object") {
@@ -96,15 +96,13 @@ function buildRuntime(result: VerticalSliceResult): AgentRuntime {
               warnings: ["ARTIFACT_HANDOFF_SCOPE_MISMATCH"],
             };
           }
+          upstreamArtifact = {
+            artifactId: source.sourceArtifactId,
+            stage: source.sourceStage,
+            artifactType: source.sourceArtifactType,
+            payload: source.payload as Record<string, unknown>,
+          };
         }
-        const upstreamArtifact = stage === "product"
-          ? undefined
-          : {
-              artifactId: source.sourceArtifactId,
-              stage: source.sourceStage,
-              artifactType: source.sourceArtifactType,
-              payload: source.payload as Record<string, unknown>,
-            };
         const stageResult = resultFor(result, stage);
         return upstreamArtifact
           ? {
@@ -137,7 +135,6 @@ export function buildDemoWorkflowSteps(result: VerticalSliceResult): WorkflowSte
         result.product.projectId,
         stage,
         resultFor(result, stage).result,
-        previousArtifact,
       ),
       ...(previousArtifact
         ? {
