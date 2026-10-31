@@ -48,12 +48,13 @@ export class AgentRuntime {
       };
     }
 
+    const envelope = validation.data;
     const agent = this.registry.get(
-      input.execution.agentId,
-      input.execution.agentVersion,
+      envelope.execution.agentId,
+      envelope.execution.agentVersion,
     );
 
-    const requestedTools = new Set(input.tools);
+    const requestedTools = new Set(envelope.tools);
     for (const tool of requestedTools) {
       if (!agent.allowedTools.includes(tool)) {
         return {
@@ -64,6 +65,6 @@ export class AgentRuntime {
       }
     }
 
-    return agent.execute(input);
+    return agent.execute(envelope);
   }
 }
