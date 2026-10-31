@@ -72,6 +72,33 @@ Expected response status is `needs_review` when generation succeeds. If credenti
 
 Do not commit API keys or put them in source files.
 
+## Generate AI hooks or a video script
+
+After obtaining a strategy result from `POST /v1/strategy/generate`, pass the product brief and strategy into the copy endpoint. The endpoint supports `hooks` or `script` and always requires human review.
+
+Generate hooks:
+
+```bash
+curl -X POST http://localhost:3000/v1/creative/copy \
+  -H 'content-type: application/json' \
+  -d '{
+    "organizationId": "org-local-test",
+    "projectId": "project-local-test",
+    "mode": "hooks",
+    "productBrief": {
+      "productName": "Example kitchen helper",
+      "customerProblem": "Meal preparation takes too long",
+      "audience": "Busy families"
+    },
+    "strategy": {
+      "primaryAngle": "Less preparation, more family time",
+      "proofFirst": true
+    }
+  }'
+```
+
+For a video script, change `"mode": "hooks"` to `"mode": "script"`. Both modes validate their structured output and return `needs_review`; no publishing, ad launch, or paid action is performed.
+
 Then check health:
 
 ```bash
