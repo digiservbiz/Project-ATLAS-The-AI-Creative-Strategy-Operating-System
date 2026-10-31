@@ -109,7 +109,7 @@ export function createModelBackedCreativeStrategyAgent(
           status: "needs_review",
           result: {
             strategy,
-            model: { provider: response.provider, model: response.model, usage: response.usage },
+            model: { provider: response.provider, model: response.model, ...(response.usage ? { usage: response.usage } : {}) },
             reviewRequired: true,
           },
           warnings: ["HUMAN_REVIEW_REQUIRED: verify claims, audience fit, and proof before execution."],
