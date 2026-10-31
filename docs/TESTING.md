@@ -39,6 +39,39 @@ Start the local API:
 pnpm dev
 ```
 
+## Optional live AI strategy test
+
+The API now exposes a controlled strategy-generation endpoint. It calls the model-backed strategy agent through the Agent Runtime and requires human review. It does not publish ads or perform paid actions.
+
+Set the provider configuration in your local shell before starting the API:
+
+```bash
+export ANTHROPIC_API_KEY="your-anthropic-api-key"
+export ANTHROPIC_MODEL="your-enabled-model-id"
+pnpm dev
+```
+
+Send a product brief:
+
+```bash
+curl -X POST http://localhost:3000/v1/strategy/generate \\
+  -H 'content-type: application/json' \\
+  -d '{
+    "organizationId": "org-local-test",
+    "projectId": "project-local-test",
+    "productBrief": {
+      "productName": "Example kitchen helper",
+      "customerProblem": "Meal preparation takes too long",
+      "audience": "Busy families",
+      "offer": "Starter bundle"
+    }
+  }'
+```
+
+Expected response status is `needs_review` when generation succeeds. If credentials or model configuration are missing, the endpoint returns `503 MODEL_PROVIDER_NOT_CONFIGURED`. Provider errors or invalid model output remain review-required and do not become approved strategy.
+
+Do not commit API keys or put them in source files.
+
 Then check health:
 
 ```bash
