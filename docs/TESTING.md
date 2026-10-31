@@ -25,6 +25,14 @@ Run the end-to-end deterministic workflow:
 pnpm demo
 ```
 
+Run the model gateway's isolated provider tests:
+
+```bash
+pnpm --filter @atlas/model-gateway test
+```
+
+The Anthropic adapter is covered with mocked HTTP responses; these tests do not spend API credits and do not require an API key. The live provider call is intentionally not part of the default test suite.
+
 Start the local API:
 
 ```bash
