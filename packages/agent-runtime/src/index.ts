@@ -1,4 +1,4 @@
-import type { ExecutionEnvelope, AgentIdentity } from "@atlas/contracts";
+import { executionEnvelopeSchema, type ExecutionEnvelope, type AgentIdentity } from "@atlas/contracts";
 
 export interface AgentResult {
   status: "completed" | "needs_review" | "blocked" | "failed";
@@ -37,6 +37,17 @@ export class AgentRuntime {
   constructor(private readonly registry: AgentRegistry) {}
 
   async execute(input: ExecutionEnvelope): Promise<AgentResult> {
+    const validation = executionEnvelopeSchema.safeParse(input);
+    if (!validation.success) {
+      return {
+        status: "blocked",
+        result: {},
+        warnings: validation.error.issues.map((issue) =>
+          `INVALID_EXECUTION_ENVELOPE:${issue.path.join(".") || "root"}:${issue.message}`,
+        ),
+      };
+    }
+
     const agent = this.registry.get(
       input.execution.agentId,
       input.execution.agentVersion,
