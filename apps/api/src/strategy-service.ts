@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { AgentRegistry, AgentRuntime } from "@atlas/agent-runtime";
 import { createModelBackedCreativeStrategyAgent } from "@atlas/agents";
 import type { ExecutionEnvelope } from "@atlas/contracts";
-import { AnthropicProvider } from "@atlas/model-gateway";
+import { AnthropicProvider, type ModelProvider } from "@atlas/model-gateway";
 
 export interface StrategyGenerationInput {
   organizationId: string;
@@ -15,6 +15,7 @@ export interface StrategyGenerationInput {
 export interface StrategyServiceConfig {
   apiKey: string;
   model: string;
+  provider?: ModelProvider;
 }
 
 export async function generateStrategy(
@@ -39,7 +40,7 @@ export async function generateStrategy(
   if (!config.model.trim()) throw new Error("ANTHROPIC_MODEL is required");
 
   const registry = new AgentRegistry();
-  const provider = new AnthropicProvider(config.apiKey);
+  const provider = config.provider ?? new AnthropicProvider(config.apiKey);
   registry.register(createModelBackedCreativeStrategyAgent({ provider, model: config.model }));
   const runtime = new AgentRuntime(registry);
 
