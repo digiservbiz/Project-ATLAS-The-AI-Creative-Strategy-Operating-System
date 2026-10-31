@@ -121,3 +121,5 @@ export const initialAgents = [
 ] as const;
 
 export * from "./model-backed-strategy.js";
+
+export * from "./model-backed-copy.js";
