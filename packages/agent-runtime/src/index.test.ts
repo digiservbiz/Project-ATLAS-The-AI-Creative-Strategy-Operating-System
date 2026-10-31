@@ -32,6 +32,23 @@ describe("AgentRuntime core boundaries", () => {
     expect(result.warnings[0]).toContain("Tool not permitted");
   });
 
+
+  it("blocks malformed execution envelopes before agent lookup", async () => {
+    const registry = new AgentRegistry();
+    const result = await new AgentRuntime(registry).execute({
+      execution: { runId: "", agentId: "missing", agentVersion: "1.0.0", attempt: 0, requestedAt: "not-a-date" },
+      context: { organizationId: "", projectId: "project-1" },
+      task: { objective: "", constraints: [], instructions: [] },
+      inputs: {},
+      knowledge: [],
+      memory: [],
+      tools: [],
+    } as never);
+
+    expect(result.status).toBe("blocked");
+    expect(result.warnings.some((warning) => warning.startsWith("INVALID_EXECUTION_ENVELOPE:"))).toBe(true);
+  });
+
   it("executes only the registered agent version", async () => {
     const registry = new AgentRegistry();
     registry.register(definition());
