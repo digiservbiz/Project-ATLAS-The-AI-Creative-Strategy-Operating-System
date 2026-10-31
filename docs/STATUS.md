@@ -13,6 +13,8 @@ Branch: `dev`
 - Workflow outputs retain the consumed artifact ID and payload for inspection.
 - Workflow stage failures are now attributed to the stage that actually has a blocking error, preserving the completed prefix.
 - Agent runtime validates execution envelopes before agent lookup and executes normalized schema output.
+- Anthropic model adapter now validates generation parameters, applies a request timeout, normalizes token usage, rejects empty/malformed responses, and classifies rate-limit, timeout, and provider-unavailable errors without exposing provider response bodies.
+- Added Model Gateway tests for explicit provider routing, duplicate registration, missing providers, and Anthropic success/failure handling.
 - Added malformed-envelope rejection coverage.
 - Added `docs/TESTING.md` with safe local install, test, demo, API smoke-test, and failure-path instructions.
 
@@ -38,7 +40,7 @@ The normal demo should complete all eight stages and end in `needs_review`, with
 
 1. Obtain a passing CI run for typecheck, tests, and build.
 2. Start the local API and verify `/health`, `/v1/runtime/status`, and `POST /v1/demo/runs`.
-3. Replace deterministic outputs with actual model-powered agent outputs behind the model gateway.
+3. Wire the tested model gateway into a controlled strategy-agent execution path, with explicit provider/model configuration and human review.
 4. Add persistent authenticated run storage before exposing the API beyond local testing.
 
 ## Safety boundary
