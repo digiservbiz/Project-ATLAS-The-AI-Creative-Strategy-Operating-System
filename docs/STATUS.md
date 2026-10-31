@@ -22,6 +22,9 @@ Branch: `dev`
 - Added `POST /v1/strategy/generate`, configured only when `ANTHROPIC_API_KEY` and `ANTHROPIC_MODEL` are present; missing configuration returns a clear 503 response.
 - Added API service tests for successful model-backed strategy generation and pre-model tenant/product validation.
 - Added a live AI strategy smoke-test guide; provider credentials remain environment-only.
+- Added model-backed creative copy agents for hook generation and video-script generation, each with structured output validation, evidence-conscious prompts, and mandatory human review.
+- Added agent tests for five-hook output, multi-scene script output, and malformed hook rejection.
+- Hardened model metadata handling when providers do not return token usage, and rejected non-finite script durations.
 - Added malformed-envelope rejection coverage.
 - Added `docs/TESTING.md` with safe local install, test, demo, API smoke-test, and failure-path instructions.
 
@@ -48,6 +51,8 @@ The normal demo should complete all eight stages and end in `needs_review`, with
 1. Obtain a passing CI run for typecheck, tests, and build.
 2. Start the local API and verify `/health`, `/v1/runtime/status`, and `POST /v1/demo/runs`.
 3. Run the first live API strategy test with a configured Anthropic key and verify generated strategy quality and review behavior.
+4. Add the controlled API entry points for the new hook and script agents, then connect them into a persisted creative-production workflow.
+5. Connect tenant-scoped SIEL retrieval so agents can ground their outputs in indexed product, audience, offer, and evidence records.
 4. Add persistent authenticated run storage before exposing the API beyond local testing.
 
 ## Safety boundary
