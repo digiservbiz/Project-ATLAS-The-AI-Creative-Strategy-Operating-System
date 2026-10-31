@@ -25,6 +25,15 @@ describe("ATLAS demo runner", () => {
       payload: { angle: "problem-solution" },
     });
 
+    const stages = run.summary.stages;
+    for (let index = 1; index < stages.length; index += 1) {
+      const currentStage = stages[index];
+      const previousStage = stages[index - 1];
+      const output = run.summary.workflow.outputs[currentStage].result;
+      expect(output.consumedUpstreamArtifactId).toBe(`scenario:product-to-learning-001:${previousStage}`);
+      expect(output.upstreamArtifact.stage).toBe(previousStage);
+    }
+
     const artifacts = await run.artifactRepository.listRun(run.summary.runId, {
       organizationId: "org:atlas-demo",
       projectId: "project:atlas-demo",
