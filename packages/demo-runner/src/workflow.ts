@@ -92,7 +92,25 @@ function buildRuntime(result: VerticalSliceResult): AgentRuntime {
             };
           }
         }
-        return resultFor(result, stage);
+        const upstreamArtifact = stage === "product"
+          ? undefined
+          : {
+              artifactId: source.sourceArtifactId,
+              stage: source.sourceStage,
+              artifactType: source.sourceArtifactType,
+              payload: source.payload as Record<string, unknown>,
+            };
+        const stageResult = resultFor(result, stage);
+        return upstreamArtifact
+          ? {
+              ...stageResult,
+              result: {
+                ...stageResult.result,
+                upstreamArtifact,
+                consumedUpstreamArtifactId: upstreamArtifact.artifactId,
+              },
+            }
+          : stageResult;
       },
     };
     registry.register(definition);
