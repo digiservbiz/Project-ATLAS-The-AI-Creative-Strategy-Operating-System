@@ -28,7 +28,7 @@ function validateHooks(value: Record<string, unknown>) {
 }
 
 function validateScript(value: Record<string, unknown>) {
-  if (typeof value.format !== "string" || !value.format.trim() || typeof value.durationSeconds !== "number" || value.durationSeconds <= 0 || !Array.isArray(value.scenes) || value.scenes.length < 3 || typeof value.cta !== "string" || !value.cta.trim()) throw new Error("MODEL_COPY_SCRIPT_REQUIRED_FIELDS_MISSING");
+  if (typeof value.format !== "string" || !value.format.trim() || typeof value.durationSeconds !== "number" || !Number.isFinite(value.durationSeconds) || value.durationSeconds <= 0 || !Array.isArray(value.scenes) || value.scenes.length < 3 || typeof value.cta !== "string" || !value.cta.trim()) throw new Error("MODEL_COPY_SCRIPT_REQUIRED_FIELDS_MISSING");
   const scenes = value.scenes.map((entry) => {
     if (!entry || typeof entry !== "object" || Array.isArray(entry)) throw new Error("MODEL_COPY_SCENE_INVALID");
     const item = entry as Record<string, unknown>;
