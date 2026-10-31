@@ -2,6 +2,7 @@ import { createServer, type IncomingMessage, type ServerResponse } from "node:ht
 import { createAtlasApplication, type IntelligenceActionsRequest, type AutonomousRunRequest } from "./application.js";
 import { createLocalAtlasComposition } from "./local-composition.js";
 import { runDemo, type DemoRun } from "@atlas/demo-runner";
+import { generateStrategy } from "./strategy-service.js";
 
 const port = Number(process.env.PORT ?? 3000);
 const localComposition = createLocalAtlasComposition();
@@ -35,6 +36,47 @@ async function handler(request: IncomingMessage, response: ServerResponse): Prom
       mode: "safe-local",
       externalActions: false,
     });
+    return;
+  }
+
+  if (request.method === "POST" && url.pathname === "/v1/strategy/generate") {
+    const apiKey = process.env.ANTHROPIC_API_KEY;
+    const model = process.env.ANTHROPIC_MODEL;
+    if (!apiKey || !model) {
+      json(response, 503, {
+        error: "MODEL_PROVIDER_NOT_CONFIGURED",
+        requiredEnvironment: ["ANTHROPIC_API_KEY", "ANTHROPIC_MODEL"],
+      });
+      return;
+    }
+    try {
+      const raw = await readBody(request);
+      const body = (raw ? JSON.parse(raw) : {}) as {
+        organizationId?: string;
+        projectId?: string;
+        productBrief?: Record<string, unknown> | string;
+        objective?: string;
+        constraints?: string[];
+      };
+      const result = await generateStrategy({
+        organizationId: body.organizationId ?? "",
+        projectId: body.projectId ?? "",
+        productBrief: body.productBrief ?? "",
+        objective: body.objective,
+        constraints: body.constraints,
+      }, { apiKey, model });
+      json(response, 200, {
+        status: result.status,
+        result: result.result,
+        warnings: result.warnings,
+        approvalRequired: true,
+        externalActionsPerformed: false,
+      });
+    } catch (error) {
+      json(response, 400, {
+        error: error instanceof Error ? error.message : "Invalid strategy request",
+      });
+    }
     return;
   }
 
