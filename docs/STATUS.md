@@ -15,6 +15,9 @@ Branch: `dev`
 - Agent runtime validates execution envelopes before agent lookup and executes normalized schema output.
 - Anthropic model adapter now validates generation parameters, applies a request timeout, normalizes token usage, rejects empty/malformed responses, and classifies rate-limit, timeout, and provider-unavailable errors without exposing provider response bodies.
 - Added Model Gateway tests for explicit provider routing, duplicate registration, missing providers, and Anthropic success/failure handling.
+- Added `createModelBackedCreativeStrategyAgent` in `@atlas/agents`, using an explicitly supplied provider/model and validating structured strategy output before returning it.
+- The model-backed strategy agent always returns `needs_review`; malformed model output and provider errors cannot become approved strategy artifacts.
+- Added tests for valid JSON, fenced JSON, missing fields, provider errors, and required model configuration.
 - Added malformed-envelope rejection coverage.
 - Added `docs/TESTING.md` with safe local install, test, demo, API smoke-test, and failure-path instructions.
 
@@ -40,7 +43,7 @@ The normal demo should complete all eight stages and end in `needs_review`, with
 
 1. Obtain a passing CI run for typecheck, tests, and build.
 2. Start the local API and verify `/health`, `/v1/runtime/status`, and `POST /v1/demo/runs`.
-3. Wire the tested model gateway into a controlled strategy-agent execution path, with explicit provider/model configuration and human review.
+3. Add a controlled API/workflow entry point that can invoke the model-backed strategy agent using explicit provider/model configuration, while retaining human review.
 4. Add persistent authenticated run storage before exposing the API beyond local testing.
 
 ## Safety boundary
