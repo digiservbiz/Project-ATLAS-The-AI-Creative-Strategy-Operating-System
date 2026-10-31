@@ -55,7 +55,7 @@ The normal demo should complete all eight stages and end in `needs_review`, with
 3. Run the first live API strategy test with a configured Anthropic key and verify generated strategy quality and review behavior.
 4. Connect strategy, hooks, and scripts as a persisted creative-production workflow with artifact lineage and review checkpoints.
 5. Connect tenant-scoped SIEL retrieval so agents can ground their outputs in indexed product, audience, offer, and evidence records.
-4. Add persistent authenticated run storage before exposing the API beyond local testing.
+6. Add persistent authenticated run storage before exposing the API beyond local testing.
 
 ## Safety boundary
 
