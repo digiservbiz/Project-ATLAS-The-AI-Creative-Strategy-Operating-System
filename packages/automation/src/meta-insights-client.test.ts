@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
-import { MetaInsightsClient } from "./meta-insights-client";
+import { MetaInsightsClient, type MetaHttpClient } from "./meta-insights-client";
 
 describe("MetaInsightsClient", () => {
   it("requests ad-level insights with the canonical fields", async () => {
-    const get = vi.fn(async () => ({ data: [{ ad_id: "ad-1" }] }));
-    const client = new MetaInsightsClient({ http: { get } });
+    const get = vi.fn(async (_url: string, _params: Record<string, string>) => ({ data: [{ ad_id: "ad-1" }] }));
+    const client = new MetaInsightsClient({ http: { get: get as unknown as MetaHttpClient["get"] } });
 
     const result = await client.fetch({
       accessToken: "secret",
@@ -26,8 +26,8 @@ describe("MetaInsightsClient", () => {
   });
 
   it("does not duplicate act_ in account IDs", async () => {
-    const get = vi.fn(async () => ({ data: [] }));
-    const client = new MetaInsightsClient({ http: { get } });
+    const get = vi.fn(async (_url: string, _params: Record<string, string>) => ({ data: [] }));
+    const client = new MetaInsightsClient({ http: { get: get as unknown as MetaHttpClient["get"] } });
     await client.fetch({ accessToken: "secret", adAccountId: "act_123", dateStart: "2026-09-01", dateStop: "2026-09-01" });
     expect(get.mock.calls[0]?.[0]).toBe("https://graph.facebook.com/v23.0/act_123/insights");
   });
@@ -40,7 +40,7 @@ describe("MetaInsightsClient", () => {
   });
 
   it("rejects an inverted date range", async () => {
-    const client = new MetaInsightsClient({ http: { get: async () => ({ data: [] }) } });
+    const client = new MetaInsightsClient({ http: { get: async <T>() => ({ data: [] } as unknown as T) } });
     await expect(client.fetch({ accessToken: "secret", adAccountId: "123", dateStart: "2026-09-03", dateStop: "2026-09-01" })).rejects.toThrow("dateStart cannot be after dateStop");
   });
 });
