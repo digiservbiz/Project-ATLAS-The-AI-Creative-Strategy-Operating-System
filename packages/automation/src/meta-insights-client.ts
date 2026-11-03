@@ -61,7 +61,7 @@ export class MetaInsightsClient {
     this.apiVersion = options.apiVersion ?? "v23.0";
   }
 
-  async fetch(request: MetaInsightsRequest): Promise<MetaInsightsPage> {
+  async fetch<T = Record<string, unknown>>(request: MetaInsightsRequest): Promise<MetaInsightsPage<T>> {
     this.validate(request);
     const params: Record<string, string> = {
       access_token: request.accessToken,
@@ -70,7 +70,7 @@ export class MetaInsightsClient {
       level: request.level ?? "ad",
       limit: String(request.limit ?? 100),
     };
-    return this.options.http.get<MetaInsightsPage>(
+    return this.options.http.get<MetaInsightsPage<T>>(
       `${this.baseUrl}/${this.apiVersion}/${accountPath(request.adAccountId)}/insights`,
       params,
     );
