@@ -66,14 +66,17 @@ export function mapTikTokAdsInsights(
   if (!row.stat_time_day) throw new Error("TikTok performance period is required");
 
   const evidenceId = `tiktok-performance:${creativeId}:${row.stat_time_day}`;
+  const impressions = numberValue(row.impressions);
+  const clicks = numberValue(row.clicks);
+  const spend = numberValue(row.spend);
   return {
     creativeId,
     businessId: context.businessId,
     platform: "tiktok_ads",
     period: { start: row.stat_time_day, end: row.stat_time_day },
-    impressions: numberValue(row.impressions),
-    clicks: numberValue(row.clicks),
-    spend: numberValue(row.spend),
+    ...(impressions !== undefined ? { impressions } : {}),
+    ...(clicks !== undefined ? { clicks } : {}),
+    ...(spend !== undefined ? { spend } : {}),
     conversions: resolveConversions(row),
     revenue: resolveRevenue(row),
     evidenceIds: [...new Set([evidenceId, ...(context.evidenceIds ?? [])])],
