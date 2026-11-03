@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { AudienceIntelligence } from "./audience-intelligence.js";
+import type { CreativeExperiment } from "./creative-experimentation.js";
 import type { CreativeHypothesis } from "./creative-hypothesis-engine.js";
 import type { DecisionRecord } from "./decision-record.js";
 import { PersistentIntelligenceService } from "./persistent-intelligence-service.js";
@@ -89,5 +90,26 @@ describe("PersistentIntelligenceService", () => {
     const d2 = await service.recordDecision({ ...decision, status: "superseded" });
     expect(d2.version).toBe(2);
     expect((await repository.get<DecisionRecord>("business-1", "decision", "decision-1"))?.data.status).toBe("superseded");
+  });
+
+  it("requires explicit business scope when persisting experiments", async () => {
+    const repository = new MemoryRepository();
+    const service = new PersistentIntelligenceService({ repository });
+    const experiment: CreativeExperiment = {
+      id: "experiment-1",
+      hypothesisId: "hypothesis-1",
+      variable: "hook",
+      variants: [{ id: "v1", description: "proof" }, { id: "v2", description: "generic" }],
+      holdConstant: [],
+      successMetrics: ["conversion_rate"],
+      results: [],
+      status: "planned",
+    };
+
+    await expect(service.recordExperiment(experiment, "")).rejects.toThrow("Experiment business ID is required");
+    const record = await service.recordExperiment(experiment, "business-1", ["e-1"]);
+    expect(record.entityType).toBe("experiment");
+    expect(record.businessId).toBe("business-1");
+    expect(record.evidenceIds).toEqual(["e-1"]);
   });
 });
