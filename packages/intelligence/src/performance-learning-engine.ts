@@ -43,6 +43,7 @@ export interface PerformanceLearningThresholds {
 }
 
 export interface PerformanceLearningResult {
+  performance: CanonicalPerformanceMetrics;
   creative: CreativeDNA;
   learning: LearningRecord | null;
 }
@@ -80,13 +81,20 @@ function metric(input: PlatformPerformanceInput, key: string, aliases: string[])
 export function normalizePerformance(input: PlatformPerformanceInput): CanonicalPerformanceMetrics {
   if (!input.creativeId.trim()) throw new Error("Creative ID is required");
   if (!input.businessId.trim()) throw new Error("Business ID is required");
-  if (!input.platform.trim()) throw new Error("Performance platform is required");\n  const periodStart = Date.parse(input.period.start);\n  const periodEnd = Date.parse(input.period.end);\n  if (!Number.isFinite(periodStart) || !Number.isFinite(periodEnd) || periodStart > periodEnd) {\n    throw new Error("Performance period must contain a valid start and end");\n  }
+  if (!input.platform.trim()) throw new Error("Performance platform is required");
+  const periodStart = Date.parse(input.period.start);
+  const periodEnd = Date.parse(input.period.end);
+  if (!Number.isFinite(periodStart) || !Number.isFinite(periodEnd) || periodStart > periodEnd) {
+    throw new Error("Performance period must contain a valid start and end");
+  }
 
   const impressions = nonNegative(metric(input, "impressions", ["impressions", "views"]), "Impressions");
   const clicks = nonNegative(metric(input, "clicks", ["clicks", "link_clicks"]), "Clicks");
   const spend = nonNegative(metric(input, "spend", ["spend", "cost"]), "Spend");
   const conversions = nonNegative(metric(input, "conversions", ["conversions", "purchases", "leads"]), "Conversions");
   const revenue = nonNegative(metric(input, "revenue", ["revenue", "conversion_value", "purchase_value"]), "Revenue");
+
+  if (clicks > impressions && impressions > 0) throw new Error("Clicks cannot exceed impressions");
 
   return {
     creativeId: input.creativeId,
@@ -149,7 +157,7 @@ export function createPerformanceLearning(
   if (!strong && !weak) return null;
 
   const status = strong ? "supported" : "rejected";
-  const hypothesisId = `creative-performance:${dna.id}`;
+  const hypothesisId = dna.hypothesisId ?? `creative-performance:${dna.id}`;
   const statement = strong
     ? `Creative ${dna.id} supports its current hook/angle combination with ${performance.roas.toFixed(2)} ROAS and ${(performance.ctr * 100).toFixed(2)}% CTR on ${performance.platform}.`
     : `Creative ${dna.id} underperforms on its current hook/angle combination with ${performance.roas.toFixed(2)} ROAS and ${(performance.ctr * 100).toFixed(2)}% CTR on ${performance.platform}.`;
