@@ -35,7 +35,7 @@ describe("workflow resume", () => {
     expect(first.status).toBe("failed");
     expect(first.completedSteps).toEqual(["one"]);
 
-    const resumedSteps = [steps[0], makeStep("resume-1", "two"), steps[2]];
+    const firstStep = steps[0];\n    const thirdStep = steps[2];\n    if (!firstStep || !thirdStep) throw new Error("TEST_STEPS_MISSING");\n    const resumedSteps = [firstStep, makeStep("resume-1", "two"), thirdStep];
     const resumed = await resumeWorkflow(engine, store, resumedSteps);
     expect(resumed.status).toBe("completed");
     expect(resumed.completedSteps).toEqual(["one", "two", "three"]);
