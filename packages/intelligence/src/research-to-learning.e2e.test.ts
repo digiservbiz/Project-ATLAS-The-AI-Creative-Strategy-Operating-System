@@ -93,6 +93,8 @@ describe("ATLAS research → strategy → execution → performance → learning
     const creative = createCreativeDNA({
       id: "journey-creative",
       businessId: "journey-business",
+      hypothesisId: hypothesis.id,
+      experimentId: experiment.id,
       hook: "See setup completed in 60 seconds",
       angle: "proof-led speed",
       proof: "Customer-demonstrated setup",
