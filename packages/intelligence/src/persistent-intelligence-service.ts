@@ -192,46 +192,17 @@ export class PersistentIntelligenceService {
     if (input.businessId !== state.businessId || dna.businessId !== state.businessId) {
       throw new Error("Performance outcome belongs to a different business");
     }
+
     const result = processPerformanceOutcome(dna, input, thresholds);
     await this.recordCreativeDNA(result.creative);
     if (!result.learning) {
-      return { state: structuredClone(state), creative: result.creative, performance: {
-        creativeId: input.creativeId,
-        businessId: input.businessId,
-        platform: input.platform,
-        period: { ...input.period },
-        impressions: result.creative.performance?.impressions ?? 0,
-        clicks: result.creative.performance?.clicks ?? 0,
-        spend: result.creative.performance?.spend ?? 0,
-        conversions: result.creative.performance?.conversions ?? 0,
-        revenue: result.creative.performance?.revenue ?? 0,
-        ctr: result.creative.performance?.ctr ?? 0,
-        cpc: result.creative.performance?.cpc ?? 0,
-        cpa: result.creative.performance?.cpa ?? 0,
-        roas: result.creative.performance?.roas ?? 0,
-        evidenceIds: [...new Set(input.evidenceIds ?? [])],
-      }, learning: null };
+      return { state: structuredClone(state), creative: result.creative, performance: result.performance, learning: null };
     }
+
     await this.recordLearning(result.learning);
     const nextState = refreshNextActions(applyLearning(state, result.learning));
     await this.saveStrategicState(nextState);
-    const performance = {
-      creativeId: input.creativeId,
-      businessId: input.businessId,
-      platform: input.platform,
-      period: { ...input.period },
-      impressions: result.creative.performance?.impressions ?? 0,
-      clicks: result.creative.performance?.clicks ?? 0,
-      spend: result.creative.performance?.spend ?? 0,
-      conversions: result.creative.performance?.conversions ?? 0,
-      revenue: result.creative.performance?.revenue ?? 0,
-      ctr: result.creative.performance?.ctr ?? 0,
-      cpc: result.creative.performance?.cpc ?? 0,
-      cpa: result.creative.performance?.cpa ?? 0,
-      roas: result.creative.performance?.roas ?? 0,
-      evidenceIds: [...new Set(input.evidenceIds ?? [])],
-    };
-    return { state: nextState, creative: result.creative, performance, learning: result.learning };
+    return { state: nextState, creative: result.creative, performance: result.performance, learning: result.learning };
   }
 
   async ingestLearning(snapshot: IntelligenceSnapshot, learning: LearningRecord): Promise<IntelligenceSnapshot> {
