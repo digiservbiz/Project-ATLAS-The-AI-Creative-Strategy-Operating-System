@@ -38,6 +38,7 @@ describe("ATLAS demo runner", () => {
       };
       expect(output.consumedUpstreamArtifactId).toBe(`scenario:product-to-learning-001:${previousStage}`);
       const upstream = output.upstreamArtifact;
+      if (!upstream) throw new Error("DEMO_UPSTREAM_ARTIFACT_MISSING");
       expect(upstream.stage).toBe(previousStage);
     }
 
