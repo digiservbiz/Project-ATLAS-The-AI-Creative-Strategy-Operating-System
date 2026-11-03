@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { PgVectorSemanticRepository } from "./pgvector-repository.js";
+import type { Database } from "@atlas/database";
 
 function dbSpy() {
   const calls: Array<{ sql: string; values?: unknown[] }> = [];
@@ -9,7 +10,7 @@ function dbSpy() {
       calls.push({ sql, values });
       return [] as T[];
     },
-  } as never;
+  } as unknown as Database & { calls: Array<{ sql: string; values?: unknown[] }> };
 }
 
 const selector = { provider: "local-hash", model: "atlas-local-hash", version: "1", dimensions: 3 };
@@ -48,11 +49,11 @@ describe("PgVectorSemanticRepository validation", () => {
     }, [1, 0, 0], selector);
 
     expect(db.calls).toHaveLength(1);
-    expect(db.calls[0].sql).toContain("e.provider=$5");
-    expect(db.calls[0].sql).toContain("e.model=$6");
-    expect(db.calls[0].sql).toContain("e.version=$7");
-    expect(db.calls[0].sql).toContain("e.dimensions=$8");
-    expect(db.calls[0].sql).toContain("o.organization_id=$1");
-    expect(db.calls[0].sql).toContain("o.project_id=$2");
+    expect(db.calls[0].sql).toContain("e.provider = $4");
+    expect(db.calls[0].sql).toContain("e.model = $5");
+    expect(db.calls[0].sql).toContain("e.version = $6");
+    expect(db.calls[0].sql).toContain("e.dimensions = $7");
+    expect(db.calls[0].sql).toContain("o.organization_id = $1");
+    expect(db.calls[0].sql).toContain("o.project_id = $2");
   });
 });
