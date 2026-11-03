@@ -75,12 +75,11 @@ This is intentionally a local/test boundary. Production authentication, database
 
 ## Production-hardening checklist
 
-1. Connect canonical performance metrics to Creative DNA and learning records.
-2. Expand end-to-end tests across research → strategy → execution → performance → learning.
-3. Complete platform-specific strategy adapters.
-4. Complete agency/multi-client tenant isolation and authorization checks across intelligence state and memory.
-5. Validate PostgreSQL migrations, secrets, OAuth/provider scopes, scheduling, observability and deployment with real target-environment credentials.
-6. Replace the local API shell's in-memory/request composition with production dependency-injection wiring for authenticated business-model/snapshot loading, scoped repositories, workflow skill maps and durable workers.
+1. Run the new integration and end-to-end tests in CI; the GitHub commit currently has no reported status checks or workflow runs.
+2. Complete platform-specific strategy adapters and map each provider's metrics into the canonical contract.
+3. Complete agency/multi-client tenant authorization across all API routes, intelligence state, semantic memory and background workers.
+4. Validate PostgreSQL migrations, secrets, OAuth/provider scopes, scheduling, observability and deployment with real target-environment credentials.
+5. Replace the local API shell's in-memory/request composition with production dependency-injection wiring for authenticated business-model/snapshot loading, scoped repositories, workflow skill maps and durable workers.
 
 ## Architectural rule
 
