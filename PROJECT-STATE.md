@@ -75,8 +75,9 @@ This is intentionally a local/test boundary. Production authentication, database
 
 ## Production-hardening checklist
 
-1. Run the new integration and end-to-end tests in CI; the GitHub commit currently has no reported status checks or workflow runs.
-2. Complete platform-specific strategy adapters and map each provider's metrics into the canonical contract.
+1. Resolve the remaining strict TypeScript errors in the broader `packages/automation` workspace. Latest CI typechecks the intelligence, semantic, workflow-engine and demo-runner packages, then stops in automation; tests and build are therefore skipped. The performance-ingestion-specific errors have been addressed, but the whole automation package is not yet green.
+2. Run the new performance integration and research-to-learning end-to-end tests once the workspace typecheck gate is clear.
+3. Complete platform-specific strategy adapters and map each provider's metrics into the canonical contract.
 3. Complete agency/multi-client tenant authorization across all API routes, intelligence state, semantic memory and background workers.
 4. Validate PostgreSQL migrations, secrets, OAuth/provider scopes, scheduling, observability and deployment with real target-environment credentials.
 5. Replace the local API shell's in-memory/request composition with production dependency-injection wiring for authenticated business-model/snapshot loading, scoped repositories, workflow skill maps and durable workers.
