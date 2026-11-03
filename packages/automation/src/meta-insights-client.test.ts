@@ -33,8 +33,8 @@ describe("MetaInsightsClient", () => {
   });
 
   it("rejects invalid requests before making a network call", async () => {
-    const get = vi.fn(async () => ({ data: [] }));
-    const client = new MetaInsightsClient({ http: { get } });
+    const get = vi.fn(async (_url: string, _params: Record<string, string>) => ({ data: [] }));
+    const client = new MetaInsightsClient({ http: { get: get as unknown as MetaHttpClient["get"] } });
     await expect(client.fetch({ accessToken: "", adAccountId: "123", dateStart: "2026-09-02", dateStop: "2026-09-01" })).rejects.toThrow("Meta access token is required");
     expect(get).not.toHaveBeenCalled();
   });
