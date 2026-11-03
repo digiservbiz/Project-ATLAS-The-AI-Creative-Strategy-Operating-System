@@ -35,7 +35,9 @@ export class HttpEmbeddingProvider implements EmbeddingProvider {
 
   async embed(input: string): Promise<number[]> {
     const vectors = await this.embedBatch([input]);
-    return vectors[0];
+    const vector = vectors[0];
+    if (!vector) throw new Error("EMBEDDING_PROVIDER_VECTOR_MISSING");
+    return vector;
   }
 
   async embedBatch(inputs: string[]): Promise<number[][]> {
