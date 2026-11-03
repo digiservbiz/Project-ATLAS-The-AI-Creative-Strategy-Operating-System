@@ -53,7 +53,19 @@ export class PgVectorSemanticRepository implements SemanticRepository {
     queryVector: number[],
     selector: EmbeddingSelector,
   ): Promise<SemanticSearchResponse> {
-    const limit = Math.min(Math.max(request.topK ?? 10, 1), 100);
+    if (!request.organizationId.trim() || !request.projectId.trim()) {
+      throw new Error("TENANT_SCOPE_REQUIRED");
+    }
+    if (!Number.isInteger(request.topK) || request.topK < 1 || request.topK > 100) {
+      throw new Error("INVALID_TOP_K");
+    }
+    if (queryVector.length !== selector.dimensions || queryVector.some((value) => !Number.isFinite(value))) {
+      throw new Error("QUERY_VECTOR_DIMENSION_MISMATCH");
+    }
+    if (!selector.provider.trim() || !selector.model.trim() || !selector.version.trim()) {
+      throw new Error("EMBEDDING_SELECTOR_REQUIRED");
+    }
+    const limit = request.topK;
     const values: unknown[] = [request.organizationId, request.projectId, vectorLiteral(queryVector), selector.provider, selector.model, selector.version, selector.dimensions];
     const filters: string[] = ["o.organization_id = $1", "o.project_id = $2", "e.provider = $4", "e.model = $5", "e.version = $6", "e.dimensions = $7"];
 
