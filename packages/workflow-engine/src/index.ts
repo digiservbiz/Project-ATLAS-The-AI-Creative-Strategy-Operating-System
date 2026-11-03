@@ -12,7 +12,7 @@ export interface WorkflowStep {
   artifactHandoff?: WorkflowArtifactHandoff;
   requiresArtifactHandoff?: boolean;
 }
-export interface WorkflowRunResult { status: "completed" | "needs_review" | "blocked" | "failed"; completedSteps: string[]; outputs: Record<string, AgentResult>; }
+export interface WorkflowRunResult { status: "running" | "completed" | "needs_review" | "blocked" | "failed" | "cancelled"; completedSteps: string[]; outputs: Record<string, AgentResult>; }
 export interface WorkflowRunRecord extends WorkflowRunResult { runId: string; organizationId: string; projectId: string; createdAt: string; updatedAt: string; }
 export interface WorkflowRunStore {
   create(record: WorkflowRunRecord): Promise<void>;
@@ -63,7 +63,7 @@ export interface WorkflowEngineOptions { retryPolicy?: RetryPolicy; sleep?: (ms:
 export class WorkflowEngine {
   private readonly retryPolicy: RetryPolicy;
   private readonly sleep: (ms: number) => Promise<void>;
-  private readonly eventStore?: WorkflowEventStore;
+  private readonly eventStore: WorkflowEventStore | undefined;
   constructor(private readonly runtime: AgentRuntime, private readonly store?: WorkflowRunStore, options: WorkflowEngineOptions = {}) {
     this.retryPolicy = options.retryPolicy ?? DEFAULT_RETRY_POLICY;
     this.sleep = options.sleep ?? ((ms) => new Promise((resolve) => setTimeout(resolve, ms)));
