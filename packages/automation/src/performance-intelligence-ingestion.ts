@@ -1,4 +1,5 @@
 import type {
+  CanonicalPerformanceMetrics,
   CreativeDNA,
   IntelligenceSnapshot,
   LearningRecord,
@@ -6,27 +7,22 @@ import type {
   PlatformPerformanceInput,
   PerformanceLearningThresholds,
 } from "@atlas/intelligence";
-import {
-  normalizePerformance,
-  applyPerformanceToCreativeDNA,
-  createPerformanceLearning,
-} from "@atlas/intelligence";
 
 export interface CreativeDNARepository {
   get(businessId: string, creativeId: string): Promise<CreativeDNA | null>;
 }
 
 export interface PerformanceIntelligenceIngestionResult {
-  performance: ReturnType<typeof normalizePerformance>;
+  performance: CanonicalPerformanceMetrics;
   creative: CreativeDNA;
   learning: LearningRecord | null;
   snapshot: IntelligenceSnapshot;
 }
 
 /**
- * Production boundary for turning provider performance into durable ATLAS intelligence.
- * Platform adapters map provider responses into PlatformPerformanceInput; this service
- * owns Creative DNA persistence and feeds qualifying outcomes into the learning loop.
+ * Provider boundary for turning platform performance into durable ATLAS intelligence.
+ * Platform adapters normalize provider payloads; the persistence service owns attribution,
+ * evidence retention, threshold-gated learning, Strategic State updates and SIEL projection.
  */
 export class PerformanceIntelligenceIngestion {
   constructor(
@@ -39,23 +35,27 @@ export class PerformanceIntelligenceIngestion {
     input: PlatformPerformanceInput,
     snapshot: IntelligenceSnapshot,
   ): Promise<PerformanceIntelligenceIngestionResult> {
-    const performance = normalizePerformance(input);
-    if (snapshot.state.businessId !== performance.businessId) {
+    if (snapshot.state.businessId !== input.businessId) {
       throw new Error("Performance belongs to a different business");
     }
 
-    const dna = await this.creatives.get(performance.businessId, performance.creativeId);
-    if (!dna) throw new Error(`Creative DNA not found: ${performance.creativeId}`);
-    if (dna.businessId !== performance.businessId) throw new Error("Creative performance business scope mismatch");
+    const dna = await this.creatives.get(input.businessId, input.creativeId);
+    if (!dna) throw new Error(`Creative DNA not found: ${input.creativeId}`);
+    if (dna.businessId !== input.businessId) {
+      throw new Error("Creative performance business scope mismatch");
+    }
 
-    const creative = applyPerformanceToCreativeDNA(dna, performance);
-    await this.intelligence.recordCreativeDNA(creative);
-
-    const learning = createPerformanceLearning(creative, performance, this.thresholds);
-    const updatedSnapshot = learning
-      ? await this.intelligence.ingestLearning(snapshot, learning)
-      : snapshot;
-
-    return { performance, creative, learning, snapshot: updatedSnapshot };
+    const result = await this.intelligence.ingestPerformanceSnapshot(
+      snapshot,
+      dna,
+      input,
+      this.thresholds,
+    );
+    return {
+      performance: result.performance,
+      creative: result.creative,
+      learning: result.learning,
+      snapshot: result.snapshot,
+    };
   }
 }
