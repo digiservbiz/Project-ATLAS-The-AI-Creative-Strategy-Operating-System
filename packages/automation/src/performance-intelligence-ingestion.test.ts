@@ -1,19 +1,21 @@
 import { describe, expect, it, vi } from "vitest";
 import type { CreativeDNA, IntelligenceSnapshot, PersistentIntelligenceService } from "@atlas/intelligence";
-import { PerformanceIntelligenceIngestion } from "./performance-intelligence-ingestion";
+import { PerformanceIntelligenceIngestion } from "./performance-intelligence-ingestion.js";
 
 const dna: CreativeDNA = {
   id: "creative-1",
   businessId: "business-1",
-  concept: "Outcome-led creative",
+  hypothesisId: "hypothesis-1",
   hook: "Stop wasting time",
   angle: "efficiency",
   promise: "Save time",
   format: "video",
   platform: "meta",
+  archetype: "problem_solution",
   audienceId: "audience-1",
-  offerId: "offer-1",
   evidenceIds: [],
+  confidence: 0.8,
+  createdAt: "2026-01-01T00:00:00.000Z",
 };
 
 const snapshot = {
@@ -35,14 +37,36 @@ const input = {
   evidenceIds: ["meta:report:1"],
 };
 
+function serviceMock(learning: unknown) {
+  const ingestPerformanceSnapshot = vi.fn(async () => ({
+    state: snapshot.state,
+    performance: {
+      creativeId: "creative-1",
+      businessId: "business-1",
+      platform: "meta",
+      period: input.period,
+      impressions: 1000,
+      clicks: 60,
+      spend: 100,
+      conversions: 10,
+      revenue: 400,
+      ctr: 0.06,
+      cpc: 100 / 60,
+      cpa: 10,
+      roas: 4,
+      evidenceIds: ["meta:report:1"],
+    },
+    creative: { ...dna, performance: { impressions: 1000, clicks: 60, spend: 100, conversions: 10, revenue: 400, ctr: 0.06, cpc: 100 / 60, cpa: 10, roas: 4 } },
+    learning,
+    snapshot: learning ? { ...snapshot, state: { ...snapshot.state, knownLearnings: [learning] } } : snapshot,
+  }));
+  return { service: { ingestPerformanceSnapshot } as unknown as PersistentIntelligenceService, ingestPerformanceSnapshot };
+}
+
 describe("PerformanceIntelligenceIngestion", () => {
-  it("persists Creative DNA and feeds strong performance into learning", async () => {
-    const recordCreativeDNA = vi.fn(async () => undefined);
-    const ingestLearning = vi.fn(async (_snapshot: IntelligenceSnapshot, learning: unknown) => ({
-      ...snapshot,
-      state: { ...snapshot.state, knownLearnings: [learning] },
-    }));
-    const service = { recordCreativeDNA, ingestLearning } as unknown as PersistentIntelligenceService;
+  it("delegates attribution and learning to the durable intelligence service", async () => {
+    const learning = { id: "learning:performance:creative-1", status: "supported" };
+    const { service, ingestPerformanceSnapshot } = serviceMock(learning);
     const ingestion = new PerformanceIntelligenceIngestion({ get: async () => dna }, service);
 
     const result = await ingestion.process(input, snapshot);
@@ -50,24 +74,18 @@ describe("PerformanceIntelligenceIngestion", () => {
     expect(result.performance.roas).toBe(4);
     expect(result.performance.ctr).toBe(0.06);
     expect(result.learning?.status).toBe("supported");
-    expect(recordCreativeDNA).toHaveBeenCalledWith(expect.objectContaining({ id: dna.id, performance: expect.any(Object) }));
-    expect(ingestLearning).toHaveBeenCalledTimes(1);
+    expect(ingestPerformanceSnapshot).toHaveBeenCalledWith(snapshot, dna, input, {});
     expect(result.snapshot.state.knownLearnings).toHaveLength(1);
   });
 
-  it("updates Creative DNA but does not learn from insufficient data", async () => {
-    const recordCreativeDNA = vi.fn(async () => undefined);
-    const ingestLearning = vi.fn(async () => snapshot);
-    const ingestion = new PerformanceIntelligenceIngestion({ get: async () => dna }, {
-      recordCreativeDNA,
-      ingestLearning,
-    } as unknown as PersistentIntelligenceService);
+  it("updates no learning when the durable service reports insufficient data", async () => {
+    const { service, ingestPerformanceSnapshot } = serviceMock(null);
+    const ingestion = new PerformanceIntelligenceIngestion({ get: async () => dna }, service);
 
     const result = await ingestion.process({ ...input, impressions: 20, clicks: 2, conversions: 0 }, snapshot);
 
     expect(result.learning).toBeNull();
-    expect(recordCreativeDNA).toHaveBeenCalledTimes(1);
-    expect(ingestLearning).not.toHaveBeenCalled();
+    expect(ingestPerformanceSnapshot).toHaveBeenCalledTimes(1);
     expect(result.snapshot).toBe(snapshot);
   });
 
