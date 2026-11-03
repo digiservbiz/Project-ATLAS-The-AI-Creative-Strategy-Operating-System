@@ -1,4 +1,7 @@
+import type { AudienceIntelligence } from "./audience-intelligence";
 import type { BusinessIntelligenceModel } from "./business-intelligence-model";
+import type { CreativeHypothesis } from "./creative-hypothesis-engine";
+import type { DecisionRecord } from "./decision-record";
 import type { IntelligenceSnapshot } from "./intelligence-hub";
 import type { LearningRecord } from "./learning-loop";
 import { applyLearning, refreshNextActions } from "./strategic-learning-integration";
@@ -18,6 +21,9 @@ export interface PersistentIntelligenceServiceOptions {
 const stateId = (businessId: string) => `strategic-state:${businessId}`;
 const learningId = (learning: LearningRecord) => learning.id;
 const creativeDnaId = (dna: CreativeDNA) => dna.id;
+const decisionId = (decision: DecisionRecord) => decision.id;
+const hypothesisId = (hypothesis: CreativeHypothesis) => hypothesis.id;
+const audienceId = (audience: AudienceIntelligence) => audience.id;
 
 export class PersistentIntelligenceService {
   constructor(private readonly options: PersistentIntelligenceServiceOptions) {}
@@ -82,6 +88,69 @@ export class PersistentIntelligenceService {
       data: structuredClone(dna),
       evidenceIds: [...dna.evidenceIds],
       createdAt: existing?.createdAt ?? dna.createdAt ?? now,
+      updatedAt: now,
+    };
+    await this.options.repository.put(record);
+    await this.project(record);
+    return record;
+  }
+
+  async recordDecision(decision: DecisionRecord): Promise<PersistenceEnvelope<DecisionRecord>> {
+    if (!decision.id.trim()) throw new Error("Decision ID is required");
+    if (!decision.businessId.trim()) throw new Error("Decision business ID is required");
+
+    const existing = await this.options.repository.get<DecisionRecord>(decision.businessId, "decision", decisionId(decision));
+    const now = new Date().toISOString();
+    const record: PersistenceEnvelope<DecisionRecord> = {
+      id: decisionId(decision),
+      businessId: decision.businessId,
+      entityType: "decision",
+      version: existing ? existing.version + 1 : 1,
+      data: structuredClone(decision),
+      evidenceIds: [...decision.evidenceIds],
+      createdAt: existing?.createdAt ?? decision.createdAt ?? now,
+      updatedAt: now,
+    };
+    await this.options.repository.put(record);
+    await this.project(record);
+    return record;
+  }
+
+  async recordHypothesis(hypothesis: CreativeHypothesis): Promise<PersistenceEnvelope<CreativeHypothesis>> {
+    if (!hypothesis.id.trim()) throw new Error("Hypothesis ID is required");
+    if (!hypothesis.businessId.trim()) throw new Error("Hypothesis business ID is required");
+
+    const existing = await this.options.repository.get<CreativeHypothesis>(hypothesis.businessId, "hypothesis", hypothesisId(hypothesis));
+    const now = new Date().toISOString();
+    const record: PersistenceEnvelope<CreativeHypothesis> = {
+      id: hypothesisId(hypothesis),
+      businessId: hypothesis.businessId,
+      entityType: "hypothesis",
+      version: existing ? existing.version + 1 : 1,
+      data: structuredClone(hypothesis),
+      evidenceIds: [...hypothesis.evidenceIds],
+      createdAt: existing?.createdAt ?? hypothesis.createdAt ?? now,
+      updatedAt: now,
+    };
+    await this.options.repository.put(record);
+    await this.project(record);
+    return record;
+  }
+
+  async recordAudience(audience: AudienceIntelligence): Promise<PersistenceEnvelope<AudienceIntelligence>> {
+    if (!audience.id.trim()) throw new Error("Audience ID is required");
+    if (!audience.businessId.trim()) throw new Error("Audience business ID is required");
+
+    const existing = await this.options.repository.get<AudienceIntelligence>(audience.businessId, "audience", audienceId(audience));
+    const now = new Date().toISOString();
+    const record: PersistenceEnvelope<AudienceIntelligence> = {
+      id: audienceId(audience),
+      businessId: audience.businessId,
+      entityType: "audience",
+      version: existing ? existing.version + 1 : 1,
+      data: structuredClone(audience),
+      evidenceIds: [...audience.evidenceIds],
+      createdAt: existing?.createdAt ?? audience.updatedAt ?? now,
       updatedAt: now,
     };
     await this.options.repository.put(record);
