@@ -65,6 +65,6 @@ describe("WorkflowEngine artifact handoff", () => {
     };
     const result = await new WorkflowEngine(runtime, new InMemoryWorkflowRunStore()).run([step]);
     expect(result.status).toBe("blocked");
-    expect(result.outputs.strategy.warnings).toEqual(["ARTIFACT_HANDOFF_SELF_REFERENCE"]);
+    expect(result.outputs.strategy!.warnings).toEqual(["ARTIFACT_HANDOFF_SELF_REFERENCE"]);
   });
 });
