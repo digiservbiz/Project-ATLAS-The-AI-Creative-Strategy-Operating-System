@@ -45,5 +45,5 @@ export class AuthorizedCreativeSourceRegistry {
 
 export function createAuthorizedCreativeArtifact(input: Omit<CreativeArtifact, "source"> & { source: CreativeEvidence }): CreativeArtifact {
   if (!input.organizationId.trim()) throw new Error("CREATIVE_SCOPE_REQUIRED");
-  return { ...input, mediaUrls: input.mediaUrls ? [...input.mediaUrls] : undefined, metadata: { ...(input.metadata ?? {}) } };
+  return { ...input, ...(input.mediaUrls ? { mediaUrls: [...input.mediaUrls] } : {}), metadata: { ...(input.metadata ?? {}) } };
 }
