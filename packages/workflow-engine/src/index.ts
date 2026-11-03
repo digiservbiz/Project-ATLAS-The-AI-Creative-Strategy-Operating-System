@@ -134,8 +134,9 @@ export class WorkflowEngine {
   }
 
   async run(steps: readonly WorkflowStep[]): Promise<WorkflowRunResult> {
-    if (!steps.length) return { status: "completed", completedSteps: [], outputs: {} };
-    const first = steps[0].input;
+    const firstStep = steps[0];
+    if (!firstStep) return { status: "completed", completedSteps: [], outputs: {} };
+    const first = firstStep.input;
     const scope = { organizationId: first.context.organizationId, projectId: first.context.projectId };
     const runId = first.execution.runId;
     const now = new Date().toISOString();
