@@ -52,7 +52,12 @@ export class SemanticIntelligenceService {
   async search(request: SemanticSearchRequest): Promise<SemanticSearchResponse> {
     const queryVector = await this.embeddings.embed(request.query);
     this.assertDimensions(queryVector);
-    return this.repository.search(request, queryVector, this.embeddings.modelId);
+    return this.repository.search(request, queryVector, {
+      provider: this.embeddings.providerId,
+      model: this.embeddings.modelId,
+      version: this.embeddings.modelVersion,
+      dimensions: this.embeddings.dimensions,
+    });
   }
 
   private assertDimensions(vector: number[]): void {
