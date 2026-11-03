@@ -39,7 +39,7 @@ const DEFAULT_FIELDS = [
 ];
 
 function assertDate(value: string, name: string): void {
-  if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(value)) throw new Error(`${name} must use YYYY-MM-DD format`);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) throw new Error(`${name} must use YYYY-MM-DD format`);
 }
 
 function accountPath(id: string): string {
@@ -57,7 +57,7 @@ export class MetaInsightsClient {
   private readonly apiVersion: string;
 
   constructor(private readonly options: MetaInsightsClientOptions) {
-    this.baseUrl = (options.baseUrl ?? "https://graph.facebook.com").replace(/\\/$/, "");
+    this.baseUrl = (options.baseUrl ?? "https://graph.facebook.com").replace(/\/$/, "");
     this.apiVersion = options.apiVersion ?? "v23.0";
   }
 
