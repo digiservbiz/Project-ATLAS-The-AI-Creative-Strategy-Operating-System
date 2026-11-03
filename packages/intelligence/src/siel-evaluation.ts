@@ -3,7 +3,7 @@ import type {
   SemanticObject,
   SemanticRepository,
   SemanticSearchResponse,
-  type EmbeddingSelector,
+  EmbeddingSelector,
 } from "@atlas/contracts";
 
 export interface RetrievalFixture {
