@@ -94,7 +94,6 @@ export function normalizePerformance(input: PlatformPerformanceInput): Canonical
   const conversions = nonNegative(metric(input, "conversions", ["conversions", "purchases", "leads"]), "Conversions");
   const revenue = nonNegative(metric(input, "revenue", ["revenue", "conversion_value", "purchase_value"]), "Revenue");
 
-  if (clicks > impressions && impressions > 0) throw new Error("Clicks cannot exceed impressions");
 
   return {
     creativeId: input.creativeId,
