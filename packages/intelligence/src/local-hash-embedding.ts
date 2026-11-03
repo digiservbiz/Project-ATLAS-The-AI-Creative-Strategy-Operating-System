@@ -18,7 +18,7 @@ export class LocalHashEmbeddingProvider implements EmbeddingProvider {
     for (let i = 0; i < normalized.length; i++) {
       const code = normalized.charCodeAt(i);
       const index = (code * 31 + i * 17) % this.dimensions;
-      vector[index] += ((code % 23) + 1) / 23;
+      vector[index] = (vector[index] ?? 0) + ((code % 23) + 1) / 23;
     }
     const norm = Math.sqrt(vector.reduce((sum, value) => sum + value * value, 0)) || 1;
     return vector.map((value) => value / norm);
