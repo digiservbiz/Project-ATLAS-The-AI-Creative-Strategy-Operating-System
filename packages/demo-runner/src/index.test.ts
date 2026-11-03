@@ -12,14 +12,14 @@ describe("ATLAS demo runner", () => {
     expect(run.summary.workflow.status).toBe("needs_review");
     expect(run.summary.workflow.completedSteps).toHaveLength(8);
 
-    const strategyOutput = run.summary.workflow.outputs.strategy.result;
+    const strategyOutput = run.summary.workflow.outputs.strategy!.result;
     expect(strategyOutput.consumedUpstreamArtifactId).toBe("scenario:product-to-learning-001:product");
     expect(strategyOutput.upstreamArtifact).toMatchObject({
       stage: "product",
       payload: { productId: "product:atlas-demo" },
     });
 
-    const intelligenceOutput = run.summary.workflow.outputs["intelligence-decision"].result;
+    const intelligenceOutput = run.summary.workflow.outputs["intelligence-decision"]!.result;
     expect(intelligenceOutput.upstreamArtifact).toMatchObject({
       stage: "strategy",
       payload: { angle: "problem-solution" },
@@ -29,7 +29,8 @@ describe("ATLAS demo runner", () => {
     for (let index = 1; index < stages.length; index += 1) {
       const currentStage = stages[index];
       const previousStage = stages[index - 1];
-      const output = run.summary.workflow.outputs[currentStage].result;
+      if (!currentStage || !previousStage) throw new Error("DEMO_STAGE_MISSING");
+      const output = run.summary.workflow.outputs[currentStage]!.result;
       expect(output.consumedUpstreamArtifactId).toBe(`scenario:product-to-learning-001:${previousStage}`);
       expect(output.upstreamArtifact.stage).toBe(previousStage);
     }
@@ -40,10 +41,10 @@ describe("ATLAS demo runner", () => {
     });
 
     expect(artifacts).toHaveLength(8);
-    expect(artifacts[0].stage).toBe("product");
+    expect(artifacts[0]!.stage).toBe("product");
     expect(artifacts.at(-1)?.stage).toBe("next-action");
     expect(artifacts.slice(1).every((artifact, index) =>
-      artifact.parentArtifactId === artifacts[index].artifactId,
+      artifact.parentArtifactId === artifacts[index]!.artifactId,
     )).toBe(true);
   });
 
