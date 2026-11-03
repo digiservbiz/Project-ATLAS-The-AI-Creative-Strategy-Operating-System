@@ -1,12 +1,12 @@
 # Project ATLAS — Project State
 
-**Updated:** 2026-11-03
+**Updated:** 2026-11-04
 **Active branch:** `dev`
 **Project:** AI Creative Strategy Operating System
 
 ## Current status
 
-ATLAS is in **integration and production-hardening**. The intelligence layer is implemented as bounded services, durable PostgreSQL persistence is wired, persisted intelligence can be projected into SIEL/pgvector, production workflow execution can consume an intelligence-selected next action, and all defined intelligence entity types now have a scoped persistence path.
+ATLAS is in **integration and production-hardening**. The intelligence layer is implemented as bounded services, durable PostgreSQL persistence is wired, persisted intelligence can be projected into SIEL/pgvector, production workflow execution can consume an intelligence-selected next action, all defined intelligence entity types now have a scoped persistence path, and canonical platform performance now flows into Creative DNA, evidence-backed Learning Records and Strategic State.
 
 ## Implemented intelligence layer
 
@@ -34,6 +34,11 @@ ATLAS is in **integration and production-hardening**. The intelligence layer is 
 - In-memory persistence repository
 - PostgreSQL intelligence persistence repository
 - SIEL/pgvector intelligence projection
+- Canonical platform performance normalization (impressions, clicks, spend, conversions, revenue, CTR, CPC, CPA, ROAS)
+- Performance → Creative DNA attribution with evidence provenance
+- Threshold-gated performance learning (insufficient samples do not create conclusions)
+- Performance learning linked back to the originating Creative DNA hypothesis/experiment
+- Tenant-scoped performance ingestion
 - Intelligence-aware production orchestrator bridge
 - Production runtime factory integration for intelligence-driven workflow selection
 - Bounded autonomous operating loop with performance feedback and approval stops
@@ -46,7 +51,7 @@ ATLAS is in **integration and production-hardening**. The intelligence layer is 
 
 The existing persistence and semantic migrations are reused. No duplicate intelligence or vector tables were introduced. Intelligence records remain scoped by business, organization and project. Evidence IDs, versions, timestamps and JSON payloads are retained. Semantic projections preserve business/entity/version metadata and evidence provenance.
 
-The persistence service now exposes versioned write paths for Strategic State, Learning, Creative DNA, Decisions, Creative Hypotheses, Audience Intelligence and Experiments. Experiments require an explicit business scope at the persistence boundary so the experiment model itself does not need to carry tenant identity. Tests cover multi-entity writes, optimistic version increments and experiment scope enforcement.
+The persistence service now exposes versioned write paths for Strategic State, Learning, Creative DNA, Decisions, Creative Hypotheses, Audience Intelligence and Experiments. The performance ingestion path writes updated Creative DNA, writes a Learning Record only when minimum sample and outcome thresholds are met, updates the matching Strategic State hypothesis, and projects the persisted records into SIEL when configured. Experiments require an explicit business scope at the persistence boundary so the experiment model itself does not need to carry tenant identity. Tests cover multi-entity writes, optimistic version increments and experiment scope enforcement.
 
 ## Runtime integration
 
@@ -66,7 +71,7 @@ This is intentionally a local/test boundary. Production authentication, database
 
 ## Integration loop
 
-`Business Intelligence → Strategic State → Evidence → Hypothesis → Experiment → Outcome → Learning → SIEL → Intelligence Hub → Next Best Action → Orchestrator → bounded workflow → Performance → Learning`
+`Business Intelligence → Strategic State → Evidence → Hypothesis → Decision → Experiment → Creative DNA → bounded execution → canonical platform performance → Creative DNA attribution → threshold-gated Learning → Strategic State → SIEL → Intelligence Hub → Next Best Action → Orchestrator`
 
 ## Production-hardening checklist
 
