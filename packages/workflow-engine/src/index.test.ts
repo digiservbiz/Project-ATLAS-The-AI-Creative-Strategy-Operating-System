@@ -34,7 +34,7 @@ describe("WorkflowEngine durable state", () => {
     const store = new InMemoryWorkflowRunStore();
     const result = await new WorkflowEngine(runtimeFor(async () => { throw new Error("PERMANENT_FAILURE"); }), store).run([step("one", envelope("run-2"))]);
     expect(result.status).toBe("failed");
-    expect(result.outputs.one.warnings).toEqual(["PERMANENT_FAILURE"]);
+    expect(result.outputs.one!.warnings).toEqual(["PERMANENT_FAILURE"]);
     expect((await store.get("run-2", { organizationId: "org-1", projectId: "project-1" }))?.status).toBe("failed");
   });
   it("persists scope mismatch as failed before throwing", async () => {
