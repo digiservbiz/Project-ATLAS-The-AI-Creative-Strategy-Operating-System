@@ -77,7 +77,7 @@ describe("mapMetaAdsInsights", () => {
     ], { businessId: "business-1", evidenceIds: ["meta:account-1"] });
 
     expect(result).toHaveLength(2);
-    expect(result[0].evidenceIds).not.toBe(result[1].evidenceIds);
-    expect(result[0].evidenceIds).toContain("meta:account-1");
+    expect(result[0]!.evidenceIds).not.toBe(result[1]!.evidenceIds);
+    expect(result[0]!.evidenceIds).toContain("meta:account-1");
   });
 });
