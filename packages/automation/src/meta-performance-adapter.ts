@@ -76,14 +76,17 @@ export function mapMetaAdsInsights(
   if (!row.date_start || !row.date_stop) throw new Error("Meta performance period is required");
 
   const providerEvidenceId = evidenceId(row, creativeId);
+  const impressions = numberValue(row.impressions);
+  const clicks = numberValue(row.clicks);
+  const spend = numberValue(row.spend);
   return {
     creativeId,
     businessId: context.businessId,
     platform: "meta_ads",
     period: { start: row.date_start, end: row.date_stop },
-    impressions: numberValue(row.impressions),
-    clicks: numberValue(row.clicks),
-    spend: numberValue(row.spend),
+    ...(impressions !== undefined ? { impressions } : {}),
+    ...(clicks !== undefined ? { clicks } : {}),
+    ...(spend !== undefined ? { spend } : {}),
     conversions: resolveConversions(row),
     revenue: resolveRevenue(row),
     evidenceIds: [...new Set([providerEvidenceId, ...(context.evidenceIds ?? [])])],
