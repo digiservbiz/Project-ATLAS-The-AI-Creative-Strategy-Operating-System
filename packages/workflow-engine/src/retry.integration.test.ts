@@ -28,6 +28,6 @@ describe("WorkflowEngine retry integration", () => {
     const result = await engine.run([makeStep("r", "one")]);
     expect(result.status).toBe("completed");
     expect(attempts).toEqual([1, 2, 3]);
-    expect(result.outputs.one.result).toEqual({ attempt: 3 });
+    expect(result.outputs.one!.result).toEqual({ attempt: 3 });
   });
 });
