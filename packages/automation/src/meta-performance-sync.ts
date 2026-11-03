@@ -15,7 +15,7 @@ export class MetaPerformanceSync {
     request: MetaInsightsRequest,
     context: MetaPerformanceAdapterContext,
   ): Promise<MetaPerformanceSyncResult> {
-    const page = await this.client.fetch(request) as MetaInsightsPage<MetaAdsInsightsRow>;
+    const page = await this.client.fetch<MetaAdsInsightsRow>(request);
     const rows = page.data ?? [];
     return {
       rows,
