@@ -51,7 +51,7 @@ describe("WorkflowEngine artifact handoff", () => {
     const step: WorkflowStep = { stepId: "strategy", agentId: "test-agent", agentVersion: "1", input: envelope("run-missing"), requiresArtifactHandoff: true };
     const result = await new WorkflowEngine(runtime, new InMemoryWorkflowRunStore()).run([step]);
     expect(result.status).toBe("blocked");
-    expect(result.outputs.strategy.warnings).toEqual(["ARTIFACT_HANDOFF_REQUIRED"]);
+    expect(result.outputs.strategy!.warnings).toEqual(["ARTIFACT_HANDOFF_REQUIRED"]);
   });
 
   it("rejects a self-referencing artifact handoff", async () => {
