@@ -80,7 +80,7 @@ function metric(input: PlatformPerformanceInput, key: string, aliases: string[])
 export function normalizePerformance(input: PlatformPerformanceInput): CanonicalPerformanceMetrics {
   if (!input.creativeId.trim()) throw new Error("Creative ID is required");
   if (!input.businessId.trim()) throw new Error("Business ID is required");
-  if (!input.platform.trim()) throw new Error("Performance platform is required");\n  if (!input.period.start || !input.period.end || new Date(input.period.start).getTime() > new Date(input.period.end).getTime()) {\n    throw new Error("Performance period must contain a valid start and end");\n  }
+  if (!input.platform.trim()) throw new Error("Performance platform is required");\n  const periodStart = Date.parse(input.period.start);\n  const periodEnd = Date.parse(input.period.end);\n  if (!Number.isFinite(periodStart) || !Number.isFinite(periodEnd) || periodStart > periodEnd) {\n    throw new Error("Performance period must contain a valid start and end");\n  }
 
   const impressions = nonNegative(metric(input, "impressions", ["impressions", "views"]), "Impressions");
   const clicks = nonNegative(metric(input, "clicks", ["clicks", "link_clicks"]), "Clicks");
