@@ -29,11 +29,13 @@ export function createStrategicState(model: BusinessIntelligenceModel, objective
   const business = model.business;
   return {
     businessId: business.id,
-    objective,
+    ...(objective !== undefined ? { objective } : {}),
     businessModel: business.model,
     targetMarkets: [...business.markets],
     audienceIds: model.audiences.filter(a => a.businessId === business.id).map(a => a.id),
-    positioning: model.brands.find(b => b.businessId === business.id)?.positioning,
+    ...(model.brands.find(b => b.businessId === business.id)?.positioning !== undefined
+      ? { positioning: model.brands.find(b => b.businessId === business.id)!.positioning }
+      : {}),
     messaging: [],
     offerIds: model.offers.filter(o => o.businessId === business.id).map(o => o.id),
     competitorIds: model.competitors.filter(c => c.businessId === business.id).map(c => c.id),
