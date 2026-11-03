@@ -123,6 +123,7 @@ describe("ATLAS research → strategy → execution → performance → learning
     expect(outcome.performance.roas).toBe(5);
     expect(outcome.creative.performance?.ctr).toBe(0.04);
     expect(outcome.learning?.status).toBe("supported");
+    expect(outcome.learning?.hypothesisId).toBe(hypothesis.id);
     expect(outcome.state.knownLearnings.length).toBe(1);
     expect(outcome.state.activeHypotheses[0]?.status).toBe("supported");
 
