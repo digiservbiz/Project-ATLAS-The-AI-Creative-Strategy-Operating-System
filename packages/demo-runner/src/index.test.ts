@@ -32,9 +32,12 @@ describe("ATLAS demo runner", () => {
       const currentStage = stages[index];
       const previousStage = stages[index - 1];
       if (!currentStage || !previousStage) throw new Error("DEMO_STAGE_MISSING");
-      const output = run.summary.workflow.outputs[currentStage]!.result;
+      const output = run.summary.workflow.outputs[currentStage]!.result as {
+        consumedUpstreamArtifactId?: string;
+        upstreamArtifact?: { stage: string };
+      };
       expect(output.consumedUpstreamArtifactId).toBe(`scenario:product-to-learning-001:${previousStage}`);
-      const upstream = output.upstreamArtifact as { stage: string };
+      const upstream = output.upstreamArtifact;
       expect(upstream.stage).toBe(previousStage);
     }
 
