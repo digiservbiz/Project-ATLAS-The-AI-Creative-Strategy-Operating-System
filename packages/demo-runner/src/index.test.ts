@@ -14,13 +14,15 @@ describe("ATLAS demo runner", () => {
 
     const strategyOutput = run.summary.workflow.outputs.strategy!.result;
     expect(strategyOutput.consumedUpstreamArtifactId).toBe("scenario:product-to-learning-001:product");
-    expect(strategyOutput.upstreamArtifact).toMatchObject({
+    const strategyHandoff = strategyOutput.upstreamArtifact as { stage: string; payload: { productId?: string } };
+    expect(strategyHandoff).toMatchObject({
       stage: "product",
       payload: { productId: "product:atlas-demo" },
     });
 
     const intelligenceOutput = run.summary.workflow.outputs["intelligence-decision"]!.result;
-    expect(intelligenceOutput.upstreamArtifact).toMatchObject({
+    const intelligenceHandoff = intelligenceOutput.upstreamArtifact as { stage: string; payload: { angle?: string } };
+    expect(intelligenceHandoff).toMatchObject({
       stage: "strategy",
       payload: { angle: "problem-solution" },
     });
@@ -32,7 +34,8 @@ describe("ATLAS demo runner", () => {
       if (!currentStage || !previousStage) throw new Error("DEMO_STAGE_MISSING");
       const output = run.summary.workflow.outputs[currentStage]!.result;
       expect(output.consumedUpstreamArtifactId).toBe(`scenario:product-to-learning-001:${previousStage}`);
-      expect(output.upstreamArtifact.stage).toBe(previousStage);
+      const upstream = output.upstreamArtifact as { stage: string };
+      expect(upstream.stage).toBe(previousStage);
     }
 
     const artifacts = await run.artifactRepository.listRun(run.summary.runId, {
