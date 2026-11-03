@@ -2,6 +2,8 @@ import type { BusinessIntelligenceModel } from "./business-intelligence-model";
 import type { IntelligenceSnapshot } from "./intelligence-hub";
 import type { LearningRecord } from "./learning-loop";
 import type { CreativeDNA } from "./creative-dna";
+import type { PlatformPerformanceInput, PerformanceLearningThresholds } from "./performance-learning-engine";
+import type { StrategicState } from "./strategic-state";
 import { PersistentIntelligenceService } from "./persistent-intelligence-service";
 import type { IntelligenceRepository } from "./persistence-contract";
 import type { SemanticIntelligenceService } from "@atlas/semantic-intelligence";
