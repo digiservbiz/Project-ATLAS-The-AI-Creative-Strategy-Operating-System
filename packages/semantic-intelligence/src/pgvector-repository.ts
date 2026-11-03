@@ -81,7 +81,7 @@ export class PgVectorSemanticRepository implements SemanticRepository {
     );
 
     return {
-      embeddingModel,
+      embeddingModel: selector.model,
       results: rows.map((row, index) => ({
         object: {
           id: row.id,
