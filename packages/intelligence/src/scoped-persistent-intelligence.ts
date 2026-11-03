@@ -54,6 +54,19 @@ export class ScopedPersistentIntelligenceService {
     return this.forScope(scope).recordCreativeDNA(dna);
   }
 
+  async ingestPerformanceOutcome(
+    scope: IntelligenceTenantScope,
+    state: StrategicState,
+    dna: CreativeDNA,
+    input: PlatformPerformanceInput,
+    thresholds: Partial<PerformanceLearningThresholds> = {},
+  ) {
+    this.assertBusinessId(scope, state.businessId);
+    this.assertBusinessId(scope, dna.businessId);
+    this.assertBusinessId(scope, input.businessId);
+    return this.forScope(scope).ingestPerformanceOutcome(state, dna, input, thresholds);
+  }
+
   private assertBusinessId(scope: IntelligenceTenantScope, businessId: string): void {
     if (!businessId.trim()) throw new Error("businessId is required");
     if (!scope.organizationId.trim() || !scope.projectId.trim()) {
