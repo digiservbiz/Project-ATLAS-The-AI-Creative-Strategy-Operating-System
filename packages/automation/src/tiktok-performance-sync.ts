@@ -14,7 +14,7 @@ export class TikTokPerformanceSync {
     request: TikTokInsightsRequest,
     context: TikTokPerformanceAdapterContext,
   ): Promise<TikTokPerformanceSyncResult> {
-    const page = await this.client.fetch(request);
+    const page = await this.client.fetch<TikTokAdsInsightsRow>(request);
     const rows = page.data ?? [];
     return { rows, inputs: mapTikTokAdsInsightsBatch(rows, context) };
   }
