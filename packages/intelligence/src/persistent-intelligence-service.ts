@@ -1,5 +1,6 @@
 import type { AudienceIntelligence } from "./audience-intelligence";
 import type { BusinessIntelligenceModel } from "./business-intelligence-model";
+import type { CreativeExperiment } from "./creative-experimentation";
 import type { CreativeHypothesis } from "./creative-hypothesis-engine";
 import type { DecisionRecord } from "./decision-record";
 import type { IntelligenceSnapshot } from "./intelligence-hub";
@@ -24,6 +25,7 @@ const creativeDnaId = (dna: CreativeDNA) => dna.id;
 const decisionId = (decision: DecisionRecord) => decision.id;
 const hypothesisId = (hypothesis: CreativeHypothesis) => hypothesis.id;
 const audienceId = (audience: AudienceIntelligence) => audience.id;
+const experimentId = (experiment: CreativeExperiment) => experiment.id;
 
 export class PersistentIntelligenceService {
   constructor(private readonly options: PersistentIntelligenceServiceOptions) {}
@@ -151,6 +153,28 @@ export class PersistentIntelligenceService {
       data: structuredClone(audience),
       evidenceIds: [...audience.evidenceIds],
       createdAt: existing?.createdAt ?? audience.updatedAt ?? now,
+      updatedAt: now,
+    };
+    await this.options.repository.put(record);
+    await this.project(record);
+    return record;
+  }
+
+  async recordExperiment(experiment: CreativeExperiment, businessId: string, evidenceIds: string[] = []): Promise<PersistenceEnvelope<CreativeExperiment>> {
+    if (!businessId.trim()) throw new Error("Experiment business ID is required");
+    if (!experiment.id.trim()) throw new Error("Experiment ID is required");
+    if (!experiment.hypothesisId.trim()) throw new Error("Experiment hypothesis ID is required");
+
+    const existing = await this.options.repository.get<CreativeExperiment>(businessId, "experiment", experimentId(experiment));
+    const now = new Date().toISOString();
+    const record: PersistenceEnvelope<CreativeExperiment> = {
+      id: experimentId(experiment),
+      businessId,
+      entityType: "experiment",
+      version: existing ? existing.version + 1 : 1,
+      data: structuredClone(experiment),
+      evidenceIds: [...new Set(evidenceIds)],
+      createdAt: existing?.createdAt ?? now,
       updatedAt: now,
     };
     await this.options.repository.put(record);
