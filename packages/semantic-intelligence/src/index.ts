@@ -35,6 +35,7 @@ export class SemanticIntelligenceService {
     for (let index = 0; index < objects.length; index += 1) {
       const object = objects[index];
       const vector = vectors[index];
+      if (!object) throw new Error(`Embedding provider received no object for item ${index}`);
       if (!vector) throw new Error(`Embedding provider returned no vector for item ${index}`);
       this.assertDimensions(vector);
       await this.repository.upsertObject(object);
