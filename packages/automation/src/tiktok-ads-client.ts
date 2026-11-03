@@ -37,7 +37,7 @@ export class TikTokAdsClient {
     this.baseUrl = (options.baseUrl ?? "https://business-api.tiktok.com").replace(/\/$/, "");
   }
 
-  async fetch(request: TikTokInsightsRequest): Promise<TikTokInsightsPage> {
+  async fetch<T = Record<string, unknown>>(request: TikTokInsightsRequest): Promise<TikTokInsightsPage<T>> {
     this.validate(request);
     const body = {
       advertiser_id: request.advertiserId.trim(),
@@ -50,7 +50,7 @@ export class TikTokAdsClient {
       page_size: request.pageSize ?? 100,
       page: 1,
     };
-    return this.options.http.post<TikTokInsightsPage>(
+    return this.options.http.post<TikTokInsightsPage<T>>(
       `${this.baseUrl}/open_api/v1.3/report/integrated/get/`,
       body,
       { "Access-Token": request.accessToken },
