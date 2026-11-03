@@ -4,6 +4,7 @@ import type {
   SemanticRepository,
   SemanticSearchRequest,
   SemanticSearchResponse,
+  EmbeddingSelector,
 } from "@atlas/contracts";
 import type { Database } from "@atlas/database";
 
@@ -50,11 +51,11 @@ export class PgVectorSemanticRepository implements SemanticRepository {
   async search(
     request: SemanticSearchRequest,
     queryVector: number[],
-    embeddingModel: string,
+    selector: EmbeddingSelector,
   ): Promise<SemanticSearchResponse> {
     const limit = Math.min(Math.max(request.topK ?? 10, 1), 100);
-    const values: unknown[] = [request.organizationId, request.projectId, vectorLiteral(queryVector), embeddingModel];
-    const filters: string[] = ["o.organization_id = $1", "o.project_id = $2", "e.model = $4"];
+    const values: unknown[] = [request.organizationId, request.projectId, vectorLiteral(queryVector), selector.provider, selector.model, selector.version, selector.dimensions];
+    const filters: string[] = ["o.organization_id = $1", "o.project_id = $2", "e.provider = $4", "e.model = $5", "e.version = $6", "e.dimensions = $7"];
 
     if (request.objectTypes.length > 0) {
       values.push(request.objectTypes);
