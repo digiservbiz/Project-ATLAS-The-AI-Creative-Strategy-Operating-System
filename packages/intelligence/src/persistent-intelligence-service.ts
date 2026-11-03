@@ -5,6 +5,7 @@ import type { CreativeHypothesis } from "./creative-hypothesis-engine";
 import type { DecisionRecord } from "./decision-record";
 import type { IntelligenceSnapshot } from "./intelligence-hub";
 import type { LearningRecord } from "./learning-loop";
+import { processPerformanceOutcome, type PlatformPerformanceInput, type PerformanceLearningThresholds, type CanonicalPerformanceMetrics } from "./performance-learning-engine";
 import { applyLearning, refreshNextActions } from "./strategic-learning-integration";
 import { buildIntelligenceSnapshot } from "./intelligence-hub";
 import type { IntelligenceRepository, PersistenceEnvelope } from "./persistence-contract";
@@ -180,6 +181,57 @@ export class PersistentIntelligenceService {
     await this.options.repository.put(record);
     await this.project(record);
     return record;
+  }
+
+  async ingestPerformanceOutcome(
+    state: StrategicState,
+    dna: CreativeDNA,
+    input: PlatformPerformanceInput,
+    thresholds: Partial<PerformanceLearningThresholds> = {},
+  ): Promise<{ state: StrategicState; creative: CreativeDNA; performance: CanonicalPerformanceMetrics; learning: LearningRecord | null }> {
+    if (input.businessId !== state.businessId || dna.businessId !== state.businessId) {
+      throw new Error("Performance outcome belongs to a different business");
+    }
+    const result = processPerformanceOutcome(dna, input, thresholds);
+    await this.recordCreativeDNA(result.creative);
+    if (!result.learning) {
+      return { state: structuredClone(state), creative: result.creative, performance: {
+        creativeId: input.creativeId,
+        businessId: input.businessId,
+        platform: input.platform,
+        period: { ...input.period },
+        impressions: result.creative.performance?.impressions ?? 0,
+        clicks: result.creative.performance?.clicks ?? 0,
+        spend: result.creative.performance?.spend ?? 0,
+        conversions: result.creative.performance?.conversions ?? 0,
+        revenue: result.creative.performance?.revenue ?? 0,
+        ctr: result.creative.performance?.ctr ?? 0,
+        cpc: result.creative.performance?.cpc ?? 0,
+        cpa: result.creative.performance?.cpa ?? 0,
+        roas: result.creative.performance?.roas ?? 0,
+        evidenceIds: [...new Set(input.evidenceIds ?? [])],
+      }, learning: null };
+    }
+    await this.recordLearning(result.learning);
+    const nextState = refreshNextActions(applyLearning(state, result.learning));
+    await this.saveStrategicState(nextState);
+    const performance = {
+      creativeId: input.creativeId,
+      businessId: input.businessId,
+      platform: input.platform,
+      period: { ...input.period },
+      impressions: result.creative.performance?.impressions ?? 0,
+      clicks: result.creative.performance?.clicks ?? 0,
+      spend: result.creative.performance?.spend ?? 0,
+      conversions: result.creative.performance?.conversions ?? 0,
+      revenue: result.creative.performance?.revenue ?? 0,
+      ctr: result.creative.performance?.ctr ?? 0,
+      cpc: result.creative.performance?.cpc ?? 0,
+      cpa: result.creative.performance?.cpa ?? 0,
+      roas: result.creative.performance?.roas ?? 0,
+      evidenceIds: [...new Set(input.evidenceIds ?? [])],
+    };
+    return { state: nextState, creative: result.creative, performance, learning: result.learning };
   }
 
   async ingestLearning(snapshot: IntelligenceSnapshot, learning: LearningRecord): Promise<IntelligenceSnapshot> {
