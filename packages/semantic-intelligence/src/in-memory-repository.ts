@@ -4,6 +4,7 @@ import type {
   SemanticRepository,
   SemanticSearchRequest,
   SemanticSearchResponse,
+  EmbeddingSelector,
 } from "@atlas/contracts";
 
 export class InMemorySemanticRepository implements SemanticRepository {
@@ -21,14 +22,14 @@ export class InMemorySemanticRepository implements SemanticRepository {
   async search(
     request: SemanticSearchRequest,
     queryVector: number[],
-    embeddingModel: string,
+    selector: EmbeddingSelector,
   ): Promise<SemanticSearchResponse> {
     const candidates = [...this.embeddings.values()]
       .map((embedding) => {
         const object = this.objects.get(embedding.objectId);
         if (!object || object.organizationId !== request.organizationId || object.projectId !== request.projectId) return null;
         if (request.objectTypes.length > 0 && !request.objectTypes.includes(object.objectType)) return null;
-        if (embedding.model !== embeddingModel) return null;
+        if (embedding.provider !== selector.provider || embedding.model !== selector.model || embedding.version !== selector.version || embedding.dimensions !== selector.dimensions) return null;
         return { object, similarity: cosine(queryVector, embedding.vector) };
       })
       .filter((item): item is { object: SemanticObject; similarity: number } => item !== null)
@@ -36,7 +37,7 @@ export class InMemorySemanticRepository implements SemanticRepository {
       .slice(0, Math.min(Math.max(request.topK ?? 10, 1), 100));
 
     return {
-      embeddingModel,
+      embeddingModel: selector.model,
       results: candidates.map((item, index) => ({
         ...item,
         rank: index + 1,
