@@ -2,9 +2,10 @@ import type { AgentResult } from "@atlas/agent-runtime";
 import type { WorkflowStep, WorkflowRunResult, WorkflowRunRecord, WorkflowRunStore, WorkflowEngine } from "./index.js";
 
 export function validateResumePlan(record: WorkflowRunRecord, steps: readonly WorkflowStep[]): void {
-  if (!steps.length) throw new Error("WORKFLOW_RESUME_REQUIRES_STEPS");
-  if (steps[0].input.execution.runId !== record.runId) throw new Error("WORKFLOW_RESUME_RUN_MISMATCH");
-  if (steps[0].input.context.organizationId !== record.organizationId || steps[0].input.context.projectId !== record.projectId) {
+  const first = steps[0];
+  if (!first) throw new Error("WORKFLOW_RESUME_REQUIRES_STEPS");
+  if (first.input.execution.runId !== record.runId) throw new Error("WORKFLOW_RESUME_RUN_MISMATCH");
+  if (first.input.context.organizationId !== record.organizationId || first.input.context.projectId !== record.projectId) {
     throw new Error("WORKFLOW_RESUME_SCOPE_MISMATCH");
   }
   const ids = steps.map((step) => step.stepId);
