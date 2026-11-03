@@ -1,12 +1,12 @@
 # Project ATLAS — Project State
 
-**Updated:** 2026-09-12
+**Updated:** 2026-11-03
 **Active branch:** `dev`
 **Project:** AI Creative Strategy Operating System
 
 ## Current status
 
-ATLAS is in **integration and production-hardening**. The intelligence layer is implemented as bounded services, durable PostgreSQL persistence is wired, persisted Strategic State/Learning records can be projected into SIEL/pgvector, production workflow execution can consume an intelligence-selected next action, and a local API composition shell is now available for smoke testing.
+ATLAS is in **integration and production-hardening**. The intelligence layer is implemented as bounded services, durable PostgreSQL persistence is wired, persisted intelligence can be projected into SIEL/pgvector, production workflow execution can consume an intelligence-selected next action, and the persistence boundary now covers Strategic State, Learning, Creative DNA, Decisions, Hypotheses and Audiences.
 
 ## Implemented intelligence layer
 
@@ -33,7 +33,7 @@ ATLAS is in **integration and production-hardening**. The intelligence layer is 
 - Persistent Intelligence Service
 - In-memory persistence repository
 - PostgreSQL intelligence persistence repository
-- SIEL/pgvector intelligence projection for persisted Strategic State and Learning
+- SIEL/pgvector intelligence projection
 - Intelligence-aware production orchestrator bridge
 - Production runtime factory integration for intelligence-driven workflow selection
 - Bounded autonomous operating loop with performance feedback and approval stops
@@ -45,6 +45,8 @@ ATLAS is in **integration and production-hardening**. The intelligence layer is 
 `PersistentIntelligenceService → semantic-intelligence-projector → SemanticIntelligenceService → PgVectorSemanticRepository → semantic_objects + semantic_embeddings`
 
 The existing persistence and semantic migrations are reused. No duplicate intelligence or vector tables were introduced. Intelligence records remain scoped by business, organization and project. Evidence IDs, versions, timestamps and JSON payloads are retained. Semantic projections preserve business/entity/version metadata and evidence provenance.
+
+The persistence service now exposes versioned write paths for Strategic State, Learning, Creative DNA, Decisions, Creative Hypotheses and Audience Intelligence. The persistence test suite covers multi-entity writes and optimistic version increments.
 
 ## Runtime integration
 
@@ -68,7 +70,7 @@ This is intentionally a local/test boundary. Production authentication, database
 
 ## Production-hardening checklist
 
-1. Persist all intelligence entity types through the same repository boundary.
+1. Persist the remaining intelligence entity types through the same repository boundary, especially Experiments with an explicit business/scope contract.
 2. Connect canonical performance metrics to Creative DNA and learning records.
 3. Expand end-to-end tests across research → strategy → execution → performance → learning.
 4. Complete platform-specific strategy adapters.
