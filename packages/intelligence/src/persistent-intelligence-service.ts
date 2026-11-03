@@ -205,6 +205,21 @@ export class PersistentIntelligenceService {
     return { state: nextState, creative: result.creative, performance: result.performance, learning: result.learning };
   }
 
+  async ingestPerformanceSnapshot(
+    snapshot: IntelligenceSnapshot,
+    dna: CreativeDNA,
+    input: PlatformPerformanceInput,
+    thresholds: Partial<PerformanceLearningThresholds> = {},
+  ): Promise<{ state: StrategicState; creative: CreativeDNA; performance: CanonicalPerformanceMetrics; learning: LearningRecord | null; snapshot: IntelligenceSnapshot }> {
+    const outcome = await this.ingestPerformanceOutcome(snapshot.state, dna, input, thresholds);
+    return {
+      ...outcome,
+      snapshot: outcome.learning
+        ? buildIntelligenceSnapshot(snapshot.business, outcome.state)
+        : snapshot,
+    };
+  }
+
   async ingestLearning(snapshot: IntelligenceSnapshot, learning: LearningRecord): Promise<IntelligenceSnapshot> {
     if (learning.businessId !== snapshot.state.businessId) throw new Error("Learning belongs to a different business");
     await this.recordLearning(learning);
