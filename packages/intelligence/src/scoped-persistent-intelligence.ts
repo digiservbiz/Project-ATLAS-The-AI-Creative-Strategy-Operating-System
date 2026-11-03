@@ -34,8 +34,7 @@ export class ScopedPersistentIntelligenceService {
     const semanticService = this.options.semanticServiceFactory?.(scope);
     return new PersistentIntelligenceService({
       repository: this.options.repositoryFactory(scope),
-      semanticService,
-      semanticScope: semanticService ? scope : undefined,
+      ...(semanticService ? { semanticService, semanticScope: scope } : {}),
     });
   }
 
