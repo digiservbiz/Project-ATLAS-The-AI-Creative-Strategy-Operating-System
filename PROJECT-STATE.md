@@ -6,7 +6,7 @@
 
 ## Current status
 
-ATLAS is in **integration and production-hardening**. The intelligence layer is implemented as bounded services, durable PostgreSQL persistence is wired, persisted intelligence can be projected into SIEL/pgvector, production workflow execution can consume an intelligence-selected next action, and the persistence boundary now covers Strategic State, Learning, Creative DNA, Decisions, Hypotheses and Audiences.
+ATLAS is in **integration and production-hardening**. The intelligence layer is implemented as bounded services, durable PostgreSQL persistence is wired, persisted intelligence can be projected into SIEL/pgvector, production workflow execution can consume an intelligence-selected next action, and all defined intelligence entity types now have a scoped persistence path.
 
 ## Implemented intelligence layer
 
@@ -46,7 +46,7 @@ ATLAS is in **integration and production-hardening**. The intelligence layer is 
 
 The existing persistence and semantic migrations are reused. No duplicate intelligence or vector tables were introduced. Intelligence records remain scoped by business, organization and project. Evidence IDs, versions, timestamps and JSON payloads are retained. Semantic projections preserve business/entity/version metadata and evidence provenance.
 
-The persistence service now exposes versioned write paths for Strategic State, Learning, Creative DNA, Decisions, Creative Hypotheses and Audience Intelligence. The persistence test suite covers multi-entity writes and optimistic version increments.
+The persistence service now exposes versioned write paths for Strategic State, Learning, Creative DNA, Decisions, Creative Hypotheses, Audience Intelligence and Experiments. Experiments require an explicit business scope at the persistence boundary so the experiment model itself does not need to carry tenant identity. Tests cover multi-entity writes, optimistic version increments and experiment scope enforcement.
 
 ## Runtime integration
 
@@ -70,13 +70,12 @@ This is intentionally a local/test boundary. Production authentication, database
 
 ## Production-hardening checklist
 
-1. Persist the remaining intelligence entity types through the same repository boundary, especially Experiments with an explicit business/scope contract.
-2. Connect canonical performance metrics to Creative DNA and learning records.
-3. Expand end-to-end tests across research → strategy → execution → performance → learning.
-4. Complete platform-specific strategy adapters.
-5. Complete agency/multi-client tenant isolation and authorization checks across intelligence state and memory.
-6. Validate PostgreSQL migrations, secrets, OAuth/provider scopes, scheduling, observability and deployment with real target-environment credentials.
-7. Replace the local API shell's in-memory/request composition with production dependency-injection wiring for authenticated business-model/snapshot loading, scoped repositories, workflow skill maps and durable workers.
+1. Connect canonical performance metrics to Creative DNA and learning records.
+2. Expand end-to-end tests across research → strategy → execution → performance → learning.
+3. Complete platform-specific strategy adapters.
+4. Complete agency/multi-client tenant isolation and authorization checks across intelligence state and memory.
+5. Validate PostgreSQL migrations, secrets, OAuth/provider scopes, scheduling, observability and deployment with real target-environment credentials.
+6. Replace the local API shell's in-memory/request composition with production dependency-injection wiring for authenticated business-model/snapshot loading, scoped repositories, workflow skill maps and durable workers.
 
 ## Architectural rule
 
